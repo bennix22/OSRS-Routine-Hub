@@ -8,17 +8,17 @@
 /* Layout: one column ledger; summary strip, then one card per routine with inputs left and results right */
 :root{
   --bg:#ECEFEA; --surface:#FAFBF8; --fg:#1C231F; --muted:#5B665F; --line:#CDD5CE;
-  --accent:#2E6A43; --coin:#9A6E12; --loss:#B23A2E; --gain:#2E6A43; --chip:#DDE6DE;
+  --accent:#2E6A43; --coin:#9A6E12; --loss:#B23A2E; --gain:#2E6A43; --chip:#DDE6DE; --goldbg:#F5E7C4; --xp:#2B5BA6; --xpbg:#DCE6F6;
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#121815; --surface:#1A221D; --fg:#E5EBE6; --muted:#9AA79F; --line:#2E3A33;
-  --accent:#6FC08A; --coin:#E2B54E; --loss:#F07C6E; --gain:#6FC08A; --chip:#24302A; color-scheme:dark}}
+  --accent:#6FC08A; --coin:#E2B54E; --loss:#F07C6E; --gain:#6FC08A; --chip:#24302A; --goldbg:#3A3119; --xp:#8FB6F2; --xpbg:#1D2A3F; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121815; --surface:#1A221D; --fg:#E5EBE6; --muted:#9AA79F; --line:#2E3A33;
-  --accent:#6FC08A; --coin:#E2B54E; --loss:#F07C6E; --gain:#6FC08A; --chip:#24302A; color-scheme:dark}
+  --accent:#6FC08A; --coin:#E2B54E; --loss:#F07C6E; --gain:#6FC08A; --chip:#24302A; --goldbg:#3A3119; --xp:#8FB6F2; --xpbg:#1D2A3F; color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:none;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,4vw,2.4rem);margin:0;line-height:1.1;text-wrap:balance}
@@ -149,6 +149,15 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pill2.ok{background:var(--chip);color:var(--gain)}
 .pill2.no{background:var(--chip);color:var(--muted)}
 tr.locked td:not(:last-child){color:var(--muted)}
+.badge{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-family:var(--body);font-size:.72rem;font-weight:700;line-height:1.5;vertical-align:middle;white-space:nowrap;border:0}
+.badge.gold{background:var(--goldbg);color:var(--coin)}
+.badge.xp{background:var(--xpbg);color:var(--xp)}
+button.badge{cursor:pointer}
+button.badge:hover{filter:brightness(1.08);text-decoration:underline}
+.chips{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chips .badge{margin-left:0}
+tr.grp td{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:14px}
+td .lockn{font-size:.75rem;color:var(--muted);margin-left:6px}
 </style>
 
 <div class="wrap">
@@ -203,7 +212,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
     <div class="tile"><div class="k">Herb run</div><div class="v" id="sumHerb">–</div></div>
     <div class="tile"><div class="k">Birdhouse run</div><div class="v" id="sumBird">–</div></div>
     <div class="tile"><div class="k">Daily collects</div><div class="v" id="sumDaily">–</div></div>
-    <div class="tile"><div class="k">Tree run cost</div><div class="v" id="sumTree">–</div></div>
+    <div class="tile"><div class="k">Tree run (best XP)</div><div class="v" id="sumTree">–</div></div>
   </div>
 
   <section class="card" id="herbs">
@@ -217,7 +226,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
       <thead><tr><th>Herb</th><th>Level</th><th class="n">Seed</th><th class="n">Grimy herb</th><th class="n">Per patch</th><th class="n">Per run</th><th class="n">Farming XP / run</th></tr></thead>
       <tbody id="herbBody"></tbody>
     </table></div>
-    <p class="note">Yield of 8.5 assumes ultracompost, magic secateurs and a few disease-free patches. The best row is highlighted and used in the summary.</p>
+    <p class="note">Yield of 8.5 assumes ultracompost, magic secateurs and a few disease-free patches. <span class="badge gold">Best gold</span> and <span class="badge xp">Best XP</span> only consider herbs your Farming level allows (set it on the Unlocks tab); greyed rows are still locked.</p>
   </section>
 
   <section class="card" id="bird">
@@ -233,6 +242,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
     </table></div>
     <div class="total"><span>Profit per run</span><span class="n" id="birdTotal">–</span></div>
     <div class="total"><span>Hunter XP per run</span><span class="n" id="birdXp">–</span></div>
+    <p class="note" id="birdBest"></p>
     <p class="note">Nests are valued as empty bird nests after you take the seeds out. Clue nests, rings and the seeds themselves are a bonus on top. Higher birdhouses mainly add Hunter XP and catch more nests over time.</p>
   </section>
 
@@ -247,7 +257,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
   </section>
 
   <section class="card" id="trees">
-    <div class="head"><h2>Tree and fruit tree runs</h2><span class="req">Mostly for Farming XP</span></div>
+    <div class="head"><h2>Tree, fruit tree and hardwood runs</h2><span class="req">Mostly for Farming XP</span></div>
     <div class="controls">
       <label class="f">Tree patches<input type="number" id="tPatches" value="6" min="1" max="6"></label>
       <label class="f">Fruit tree patches<input type="number" id="fPatches" value="6" min="1" max="6"></label>
@@ -257,7 +267,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
       <thead><tr><th>Plant</th><th>Level</th><th class="n">Seed</th><th class="n">Payment</th><th class="n">Produce</th><th class="n">Net per run</th><th class="n">Farming XP / run</th></tr></thead>
       <tbody id="treeBody"></tbody>
     </table></div>
-    <p class="note">Tree runs lose money and pay you in XP instead: a yew run gives roughly 42k Farming XP and a magic run roughly 82k across 6 patches. Payments use the protection items from the doc.</p>
+    <p class="note">Most tree runs lose money and pay you in XP instead. <span class="badge gold">Best gold</span> is the type that makes the most (or loses the least) and <span class="badge xp">Best XP</span> gives the most Farming XP, among the types your Farming level allows. Greyed rows are still locked; levels come from the Unlocks tab.</p>
   </section>
 
   <p class="note">XP figures are approximate. Herb XP counts planting plus picking at your yield; tree XP counts planting plus checking health; daily XP assumes you process the items the way shown.</p>
@@ -1222,7 +1232,7 @@ tr.locked td:not(:last-child){color:var(--muted)}
 <script>
 // Snapshot of mid prices (OSRS Wiki API, 23 Oct 2026) used until the live store answers
 const SNAP_TIME = "2026-10-23T15:30:00Z";
-const SNAP = {5291:13,199:283,5292:22,201:186,5293:18,203:187,5294:31,205:328,5297:47,209:1236,5298:239,211:1624,5301:2796,215:1665,2485:1205,5303:191,217:1320,30088:40500,30094:6873,1391:7876,1783:10,7936:3,1777:236,1779:3,13573:110,2866:165,21483:651,207:5699,5295:25151,3049:1861,5296:975,213:2181,5299:1537,3051:6412,5300:41908,219:3438,5304:11066,5075:3875,8792:894,1511:23,1515:82,1513:608,6333:90,6332:88,5315:14311,5289:13153,5974:1236,22877:149301,22929:803,21486:78,21504:69,1775:81};
+const SNAP = {5312:86,5313:54,5314:3185,5283:35,5288:1272,5968:410,5386:618,5396:1899,5986:62,2114:185,225:230,5994:595,1955:36,5972:1815,6016:1504,1517:9,1519:23,1521:36,19669:626,5291:13,199:283,5292:22,201:186,5293:18,203:187,5294:31,205:328,5297:47,209:1236,5298:239,211:1624,5301:2796,215:1665,2485:1205,5303:191,217:1320,30088:40500,30094:6873,1391:7876,1783:10,7936:3,1777:236,1779:3,13573:110,2866:165,21483:651,207:5699,5295:25151,3049:1861,5296:975,213:2181,5299:1537,3051:6412,5300:41908,219:3438,5304:11066,5075:3875,8792:894,1511:23,1515:82,1513:608,6333:90,6332:88,5315:14311,5289:13153,5974:1236,22877:149301,22929:803,21486:78,21504:69,1775:81};
 let P = Object.assign({}, SNAP);
 let updated = SNAP_TIME, live = false, mode = "snap", wikiBlocked = false;
 
@@ -1264,11 +1274,71 @@ const DAILY = [
   {key:"ogre", name:"Ogre arrows (Rantz)", qty:50, cost:0, item:2866, xp:null, xpSkill:"Ranged"},
 ];
 const TREES = [
-  {name:"Yew tree", lvl:60, seed:5315, pay:[[6016,10]], produce:null, kind:"t", xp:7151},
-  {name:"Magic tree", lvl:75, seed:5316, pay:[[5974,25]], produce:null, kind:"t", xp:13914},
-  {name:"Palm tree", lvl:68, seed:5289, pay:[[5972,15]], produce:[5974,6], kind:"f", xp:10300},
-  {name:"Dragonfruit tree", lvl:81, seed:22877, pay:[[5974,15]], produce:[22929,6], kind:"f", xp:17500},
+  {group:"tree", key:"oak", name:"Oak", lvl:15, seed:5312, pay:[[5968,1]], produce:null, xp:481},
+  {group:"tree", key:"willow", name:"Willow", lvl:30, seed:5313, pay:[[5386,1]], produce:null, xp:1481},
+  {group:"tree", key:"maple", name:"Maple", lvl:45, seed:5314, pay:[[5396,1]], produce:null, xp:3448},
+  {group:"tree", key:"yew", name:"Yew", lvl:60, seed:5315, pay:[[6016,10]], produce:null, xp:7151},
+  {group:"tree", key:"magic", name:"Magic", lvl:75, seed:5316, pay:[[5974,25]], produce:null, xp:13914},
+  {group:"fruit", key:"apple", name:"Apple", lvl:27, seed:5283, pay:[[5986,9]], produce:[1955,6], xp:1272},
+  {group:"fruit", key:"papaya", name:"Papaya", lvl:57, seed:5288, pay:[[2114,10]], produce:[5972,6], xp:6494},
+  {group:"fruit", key:"palm", name:"Palm", lvl:68, seed:5289, pay:[[5972,15]], produce:[5974,6], xp:10510},
+  {group:"fruit", key:"dragonfruit", name:"Dragonfruit", lvl:81, seed:22877, pay:[[5974,15]], produce:[22929,6], xp:17895},
+  {group:"hard", key:"teak", name:"Teak", lvl:35, seed:21486, pay:[[225,15]], produce:null, xp:7325},
+  {group:"hard", key:"mahogany", name:"Mahogany", lvl:55, seed:21488, pay:[[5994,25]], produce:null, xp:15783},
 ];
+
+// ---------- Best gold / best XP for your levels ----------
+const myLvl = k => Math.max(1, Math.min(99, Math.round(+(document.getElementById("lv_"+k)?.value)) || 1));
+const farmOK = r => myLvl("Farming")<=1 || r.lvl<=myLvl("Farming");
+const birdOK = r => (myLvl("Hunter")<=1 && myLvl("Crafting")<=1) || (r.hunter<=myLvl("Hunter") && r.lvl<=myLvl("Crafting"));
+function herbRows(){
+  const patches = +$("hPatches").value||0, yld = +$("hYield").value||0;
+  const comp = $("hComp").value==="ultra" ? (price(21483)||0) : 0;
+  return HERBS.map(h=>{
+    const seed = price(h.seed), herb = sell(price(h.herb));
+    const pp = (seed==null||herb==null) ? null : yld*herb - seed - comp;
+    return {key:h.name, name:h.name, lvl:h.lvl, seed, herb:price(h.herb), pp, gold: pp==null?null:pp*patches, xp: patches*(h.plant + yld*h.pick)};
+  });
+}
+function treeRows(group){
+  const n = group==="tree" ? (+$("tPatches").value||0) : group==="fruit" ? (+$("fPatches").value||0) : 3;
+  const payOn = $("tPay").checked;
+  return TREES.filter(t=>t.group===group).map(t=>{
+    const seed = price(t.seed);
+    const pay = !payOn ? 0 : t.pay.reduce((a,[id,q])=>{ const p=price(id); return (a==null||p==null)?null:a+p*q; },0);
+    const prod = t.produce ? (()=>{ const p=sell(price(t.produce[0])); return p==null?null:p*t.produce[1]; })() : 0;
+    const gold = (seed==null||pay==null||prod==null) ? null : n*(prod - seed - pay);
+    return {key:t.key, name:t.name, lvl:t.lvl, seed, pay, prod, hasProd:!!t.produce, gold, xp:n*t.xp, n};
+  });
+}
+const birdRows = () => LOGS.map((l,i)=>({key:String(i), name:l.name, lvl:l.lvl, hunter:l.hunter, xp:4*l.xp, gold:null}));
+function rankRows(rows, ok){
+  const use = rows.filter(ok);
+  const g = use.filter(r=>r.gold!=null).sort((a,b)=>b.gold-a.gold)[0];
+  const x = use.slice().sort((a,b)=>b.xp-a.xp)[0];
+  return {gold: g && g.key, xp: x && x.key, goldRow: g, xpRow: x};
+}
+const badgeHtml = (r, rk) => (rk.gold===r.key ? '<span class="badge gold">Best gold</span>' : '') + (rk.xp===r.key ? '<span class="badge xp">Best XP</span>' : '');
+// Clickable chips next to the planner dropdowns
+function renderChips(){
+  const chip = (id, selId, rk, rows, fmtName) => {
+    const el = $(id); if(!el) return;
+    const g = rk.goldRow, x = rk.xpRow, out = [];
+    if(g) out.push(`<button type="button" class="badge gold pick" data-sel="${selId}" data-val="${g.key}" title="Pick this one">Best gold: ${fmtName(g)}</button>`);
+    if(x) out.push(`<button type="button" class="badge xp pick" data-sel="${selId}" data-val="${x.key}" title="Pick this one">Best XP: ${fmtName(x)}</button>`);
+    el.innerHTML = out.join("");
+  };
+  chip("chip_herb", "pl_herbSeed", rankRows(herbRows(), farmOK), null, r=>r.name);
+  chip("chip_tree", "pl_treeType", rankRows(treeRows("tree"), farmOK), null, r=>r.name);
+  chip("chip_fruit", "pl_fruitType", rankRows(treeRows("fruit"), farmOK), null, r=>r.name);
+  chip("chip_hard", "pl_hardType", rankRows(treeRows("hard"), farmOK), null, r=>r.name);
+  chip("chip_bird", "pl_birdType", rankRows(birdRows(), birdOK), null, r=>r.name);
+}
+document.addEventListener("click", e=>{
+  const b = e.target.closest("button.pick"); if(!b) return;
+  const sel = $(b.dataset.sel); if(!sel) return;
+  sel.value = b.dataset.val; renderPlan(); save();
+});
 
 // ---------- Run planner ----------
 const SPELLS = {
@@ -1375,14 +1445,14 @@ function autoBird(){
 const HARD_TYPES = {teak:["Teak sapling","Limpwurt root",15],mahogany:["Mahogany sapling","Yanillian hops",25]};
 
 function buildRuns(){
-  const sel = (id, obj, lv) => `<select id="${id}"><option value="auto" selected>Auto (best for my level)</option>${Object.keys(obj).map(k=>`<option value="${k}">${k[0].toUpperCase()+k.slice(1)} (${lv[k]} Farming)</option>`).join("")}</select>`;
+  const sel = (id, obj, lv) => `<select id="${id}"><option value="auto" selected>Auto (highest for my level)</option>${Object.keys(obj).map(k=>`<option value="${k}">${k[0].toUpperCase()+k.slice(1)} (${lv[k]} Farming)</option>`).join("")}</select>`;
   $("runs").innerHTML = RUNS.map(r=>{
     let opts = "";
-    if(r.key==="herb") opts += `<label>Seed <select id="pl_herbSeed">${HERBS.map(h=>`<option value="${h.name}" ${h.name==="Ranarr"?"selected":""}>${h.name} (${h.lvl} Farming)</option>`).join("")}</select></label><span class="note">Gardeners can't protect herb patches. Use ultracompost and the disease-free patches (Hosidius, Troll Stronghold, Weiss).</span>`;
-    if(r.key==="tree") opts += `<label>Tree ${sel("pl_treeType",TREE_TYPES,TREE_LV)}</label><span class="note" id="auto_tree"></span><label><input type="checkbox" id="pl_treePay" checked> Pay gardeners to protect</label><label><input type="checkbox" id="pl_stump"> Pay 200 gp to clear stumps</label>`;
-    if(r.key==="fruit") opts += `<label>Fruit tree ${sel("pl_fruitType",FRUIT_TYPES,FRUIT_LV)}</label><span class="note" id="auto_fruit"></span><label><input type="checkbox" id="pl_fruitPay" checked> Pay gardeners to protect</label>`;
-    if(r.key==="hard") opts += `<label>Hardwood ${sel("pl_hardType",HARD_TYPES,HARD_LV)}</label><span class="note" id="auto_hard"></span><label>Patches <input type="number" id="pl_hardN" value="3" min="1" max="3"></label><label><input type="checkbox" id="pl_hardPay" checked> Pay gardeners to protect</label>`;
-    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><label><input type="checkbox" id="pl_birdReuse" checked> Reuse clockwork from the old birdhouses</label><label>Birdhouse <select id="pl_birdType"><option value="auto" selected>Auto (best for my levels)</option>${LOGS.map((l,i)=>`<option value="${i}">${l.name} (${l.hunter} Hunter, ${l.lvl} Crafting)</option>`).join("")}</select></label><span class="note" id="auto_bird"></span>`;
+    if(r.key==="herb") opts += `<label>Seed <select id="pl_herbSeed">${HERBS.map(h=>`<option value="${h.name}" ${h.name==="Ranarr"?"selected":""}>${h.name} (${h.lvl} Farming)</option>`).join("")}</select></label><span class="chips" id="chip_herb"></span><span class="note">Gardeners can't protect herb patches. Use ultracompost and the disease-free patches (Hosidius, Troll Stronghold, Weiss).</span>`;
+    if(r.key==="tree") opts += `<label>Tree ${sel("pl_treeType",TREE_TYPES,TREE_LV)}</label><span class="chips" id="chip_tree"></span><span class="note" id="auto_tree"></span><label><input type="checkbox" id="pl_treePay" checked> Pay gardeners to protect</label><label><input type="checkbox" id="pl_stump"> Pay 200 gp to clear stumps</label>`;
+    if(r.key==="fruit") opts += `<label>Fruit tree ${sel("pl_fruitType",FRUIT_TYPES,FRUIT_LV)}</label><span class="chips" id="chip_fruit"></span><span class="note" id="auto_fruit"></span><label><input type="checkbox" id="pl_fruitPay" checked> Pay gardeners to protect</label>`;
+    if(r.key==="hard") opts += `<label>Hardwood ${sel("pl_hardType",HARD_TYPES,HARD_LV)}</label><span class="chips" id="chip_hard"></span><span class="note" id="auto_hard"></span><label>Patches <input type="number" id="pl_hardN" value="3" min="1" max="3"></label><label><input type="checkbox" id="pl_hardPay" checked> Pay gardeners to protect</label>`;
+    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><label><input type="checkbox" id="pl_birdReuse" checked> Reuse clockwork from the old birdhouses</label><label>Birdhouse <select id="pl_birdType"><option value="auto" selected>Auto (best for my levels)</option>${LOGS.map((l,i)=>`<option value="${i}">${l.name} (${l.hunter} Hunter, ${l.lvl} Crafting)</option>`).join("")}</select></label><span class="chips" id="chip_bird"></span><span class="note" id="auto_bird"></span>`;
     if(r.key==="daily") opts += `<span class="note">Zaff's coins and noted flax use the quantities in Daily collects below</span>`;
     opts += r.patches.map((p,i)=>`<label><input type="checkbox" id="pl_${r.key}_p${i}" ${r.defaultOn.includes(i)?"checked":""}> ${p[0]}</label>`).join("");
     return `<div class="run" id="run_${r.key}"><label><input type="checkbox" id="pl_${r.key}"> ${r.name}</label><div class="opts">${opts}</div></div>`;
@@ -1715,21 +1785,12 @@ function buildStatic(){
 }
 
 function render(){
-  // Herbs
-  const patches = +$("hPatches").value||0, yld = +$("hYield").value||0;
-  const comp = $("hComp").value==="ultra" ? (price(21483)||0) : 0;
-  let best = null;
-  const rows = HERBS.map(h=>{
-    const seed = price(h.seed), herb = sell(price(h.herb));
-    const pp = (seed==null||herb==null) ? null : yld*herb - seed - comp;
-    const pr = pp==null ? null : pp*patches;
-    if(pr!=null && (!best || pr>best.pr)) best = {name:h.name, pr};
-    const xp = patches*(h.plant + yld*h.pick);
-    if(best && best.name===h.name) best.xp = xp;
-    return {h, seed, herb:price(h.herb), pp, pr, xp};
-  });
-  $("herbBody").innerHTML = rows.map(r=>`<tr class="${best&&best.name===r.h.name?"sel":""}"><td>${r.h.name}</td><td>${r.h.lvl}</td><td class="n">${fmt(r.seed)}</td><td class="n">${fmt(r.herb)}</td><td class="n">${money(r.pp)}</td><td class="n">${money(r.pr)}</td><td class="n">${fmt(r.xp)}</td></tr>`).join("");
-  $("sumHerb").innerHTML = best ? `${money(best.pr)} <span class="note">${best.name} · ${fmt(best.xp)} XP</span>` : "–";
+  // Herbs: badges for best gold / best XP among the herbs your Farming level allows
+  const hRows = herbRows(), hRank = rankRows(hRows, farmOK);
+  $("herbBody").innerHTML = hRows.map(r=>{ const ok = farmOK(r);
+    return `<tr class="${ok?"":"locked"}"><td>${r.name}${badgeHtml(r,hRank)}</td><td>${r.lvl}${ok?"":`<span class="lockn">locked</span>`}</td><td class="n">${fmt(r.seed)}</td><td class="n">${fmt(r.herb)}</td><td class="n">${money(r.pp)}</td><td class="n">${money(r.gold)}</td><td class="n">${fmt(r.xp)}</td></tr>`; }).join("");
+  const hg = hRank.goldRow;
+  $("sumHerb").innerHTML = hg ? `${money(hg.gold)} <span class="note">${hg.name} · ${fmt(hg.xp)} XP</span>` : "–";
 
   // Birdhouses
   const log = LOGS[+$("bLog").value]; const nests = +$("bNests").value||0;
@@ -1762,19 +1823,20 @@ function render(){
   $("dailyTotal").innerHTML = money(dt);
   $("sumDaily").innerHTML = `${money(dt)} <span class="note">or ~${fmt(dXp)} XP</span>`;
 
-  // Trees
-  const tp = +$("tPatches").value||0, fp = +$("fPatches").value||0;
-  let yewCost = null;
-  $("treeBody").innerHTML = TREES.map(t=>{
-    const n = t.kind==="t"?tp:fp;
-    const seed = price(t.seed);
-    const pay = !$("tPay").checked ? 0 : t.pay.reduce((a,[id,q])=>{ const p=price(id); return (a==null||p==null)?null:a+p*q; },0);
-    const prod = t.produce ? (()=>{ const p=sell(price(t.produce[0])); return p==null?null:p*t.produce[1]; })() : 0;
-    const net = (seed==null||pay==null||prod==null) ? null : n*(prod - seed - pay);
-    if(t.name==="Yew tree") yewCost = net;
-    return `<tr><td>${t.name}</td><td>${t.lvl}</td><td class="n">${fmt(seed)}</td><td class="n">${fmt(pay)}</td><td class="n">${t.produce?fmt(prod):"—"}</td><td class="n">${money(net)}</td><td class="n">${fmt(n*t.xp)}</td></tr>`;
+  // Trees, fruit trees, hardwood: each group ranked on its own
+  const groups = [["tree","Trees"],["fruit","Fruit trees"],["hard","Hardwood trees (3 patches)"]];
+  let treeTile = null;
+  $("treeBody").innerHTML = groups.map(([g,label])=>{
+    const rows = treeRows(g), rk = rankRows(rows, farmOK);
+    if(g==="tree") treeTile = rk.xpRow;
+    return `<tr class="grp"><td colspan="7">${label}</td></tr>` + rows.map(r=>{ const ok = farmOK(r);
+      return `<tr class="${ok?"":"locked"}"><td>${r.name}${badgeHtml(r,rk)}</td><td>${r.lvl}${ok?"":`<span class="lockn">locked</span>`}</td><td class="n">${fmt(r.seed)}</td><td class="n">${fmt(r.pay)}</td><td class="n">${r.hasProd?fmt(r.prod):"—"}</td><td class="n">${money(r.gold)}</td><td class="n">${fmt(r.xp)}</td></tr>`; }).join("");
   }).join("");
-  $("sumTree").innerHTML = yewCost==null ? "–" : `${money(yewCost)} <span class="note">yew · ${fmt(tp*7151)} XP</span>`;
+  $("sumTree").innerHTML = treeTile ? `${money(treeTile.gold)} <span class="note">${treeTile.name} · ${fmt(treeTile.xp)} XP</span>` : "–";
+  // Birdhouses: best XP for your Hunter/Crafting levels
+  const bRank = rankRows(birdRows(), birdOK);
+  $("birdBest").innerHTML = bRank.xpRow ? `<span class="badge xp">Best XP</span> ${bRank.xpRow.name} birdhouses for your levels: ${fmt(bRank.xpRow.xp)} Hunter XP per run. Higher tiers also catch nests faster, so they're the best gold too.` : "";
+  renderChips();
 
   // Status
   const ago = Math.max(0, Math.round((Date.now()-new Date(updated).getTime())/60000));
