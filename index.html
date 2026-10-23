@@ -20,7 +20,7 @@
   --bg:#121815; --surface:#1A221D; --fg:#E5EBE6; --muted:#9AA79F; --line:#2E3A33;
   --accent:#6FC08A; --coin:#E2B54E; --loss:#F07C6E; --gain:#6FC08A; --chip:#24302A; color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
-.wrap{max-width:980px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
+.wrap{max-width:none;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,4vw,2.4rem);margin:0;line-height:1.1;text-wrap:balance}
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:0}
 .sub{color:var(--muted);margin:6px 0 0;max-width:65ch}
@@ -57,8 +57,16 @@ a{color:var(--accent)}
 td input[type=number]{width:80px;padding:4px 6px}
 @media (max-width:520px){input[type=number]{width:80px}}
 .plan{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+@media (min-width:1300px){
+  .plan{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:24px}
+  .inv{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
+  .inv > :nth-child(1){grid-column:1 / -1}
+  .inv > #slots{grid-column:1;grid-row:2 / span 6}
+  .inv > :not(:nth-child(1)):not(#slots){grid-column:2}
+  .slots{max-width:440px}
+}
 @media (max-width:760px){.plan{grid-template-columns:minmax(0,1fr)}}
-.runs{display:grid;gap:10px}
+.runs{display:grid;gap:10px;align-content:start;min-width:0}
 .run{border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:grid;gap:8px;background:var(--bg)}
 .run.on{border-color:var(--accent)}
 .run > label{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
@@ -67,7 +75,8 @@ td input[type=number]{width:80px;padding:4px 6px}
 .run .opts label{display:inline-flex;align-items:center;gap:5px}
 .run .opts select{padding:3px 6px;font-size:.88rem}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
-.inv{display:grid;gap:12px;align-content:start}
+.inv{display:grid;gap:12px;align-content:start;min-width:0}
+.inv > *{min-width:0}
 .meter{height:8px;border-radius:999px;background:var(--chip);overflow:hidden}
 .meter > i{display:block;height:100%;background:var(--accent);width:0}
 .meter.over > i{background:var(--loss)}
@@ -76,22 +85,29 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .slot img.ic{position:absolute;inset:0;margin:auto;max-width:72%;max-height:72%;image-rendering:pixelated;object-fit:contain}
 .slot b{position:relative;z-index:1}
 .slot.hasimg .lbl{display:none}
-.star{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:-8px;margin-right:4px;border-radius:50%;color:var(--coin);font-weight:800;cursor:help;font-size:.95rem;line-height:1}
-.star:hover,.star:focus-visible{background:var(--chip);outline:none}
-.star:hover::after,.star:focus-visible::after{content:attr(data-tip);position:absolute;left:-40px;bottom:calc(100% + 6px);width:max-content;max-width:260px;background:var(--fg);color:var(--bg);font-family:var(--body);font-size:.78rem;font-weight:400;line-height:1.35;padding:6px 9px;border-radius:7px;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:normal;text-align:left}
+.star{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:3px;margin-right:6px;border-radius:50%;color:var(--coin);font-weight:800;cursor:help;font-size:.95rem;line-height:1}
+.star:hover,.star:focus{background:var(--chip);outline:none}
+.star:hover::after,.star:focus::after{content:attr(data-tip);position:absolute;left:-40px;bottom:calc(100% + 6px);width:max-content;max-width:260px;background:var(--fg);color:var(--bg);font-family:var(--body);font-size:.78rem;font-weight:400;line-height:1.35;padding:6px 9px;border-radius:7px;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:normal;text-align:left}
 .slots{position:relative}
-.slot:hover,.slot:focus-visible{border-color:var(--accent);outline:none;overflow:visible;z-index:20}
-.slot[data-name]:hover::after,.slot[data-name]:focus-visible::after{content:attr(data-name);position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);background:var(--fg);color:var(--bg);font-family:var(--body);font-size:.78rem;font-weight:600;line-height:1.35;padding:5px 9px;border-radius:6px;white-space:pre-line;width:max-content;max-width:240px;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.slots .slot:nth-child(4n+1)[data-name]:hover::after,.slots .slot:nth-child(4n+1)[data-name]:focus-visible::after{left:0;transform:none}
-.slots .slot:nth-child(4n)[data-name]:hover::after,.slots .slot:nth-child(4n)[data-name]:focus-visible::after{left:auto;right:0;transform:none}
+.slot:hover,.slot:focus{border-color:var(--accent);outline:none;overflow:visible;z-index:20}
+.slot[data-name]:hover::after,.slot[data-name]:focus::after{content:attr(data-name);position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);background:var(--fg);color:var(--bg);font-family:var(--body);font-size:.78rem;font-weight:600;line-height:1.35;padding:5px 9px;border-radius:6px;white-space:pre-line;width:max-content;max-width:240px;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.slots .slot:nth-child(4n+1)[data-name]:hover::after,.slots .slot:nth-child(4n+1)[data-name]:focus::after{left:0;transform:none}
+.slots .slot:nth-child(4n)[data-name]:hover::after,.slots .slot:nth-child(4n)[data-name]:focus::after{left:auto;right:0;transform:none}
 .slot .nt{position:absolute;right:3px;bottom:2px;font-size:.55rem;color:var(--muted);z-index:1}
 .invlist img.ic{width:20px;height:20px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;margin-right:6px}
-.invlist li > span:first-child{display:flex;align-items:center}
+.invlist li > span:first-child{display:flex;align-items:center;flex-wrap:wrap;column-gap:4px;min-width:0}
+.invlist li > span:first-child .note{font-family:var(--body)}
 .slot b{font-family:var(--mono);font-weight:500;color:var(--coin);font-size:.7rem}
 .slot.empty{opacity:.45}
 .invlist{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:.9rem}
 .invlist li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:3px 0}
-.invlist li span:last-child{font-family:var(--mono);white-space:nowrap}
+.invlist li > span:last-child{font-family:var(--mono);white-space:nowrap;flex:none}
+.invlist li > span.how{font-family:var(--body);white-space:normal;flex:0 1 auto;text-align:right;min-width:0}
+.tp{display:inline-flex;align-items:center;max-width:100%;min-width:0}
+.tp > label{min-width:0}
+.tp > .star{flex:none}
+.run .opts > *{min-width:0;max-width:100%}
+.run{min-width:0}
 .k2{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:4px 0 2px}
 button.btn{font:inherit;font-weight:600;font-size:.88rem;color:var(--surface);background:var(--accent);border:0;border-radius:7px;padding:6px 12px;cursor:pointer;justify-self:start}
 .tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;padding-block:6px 0;scrollbar-width:none}
@@ -124,6 +140,15 @@ section.card.folded{gap:0}
 .prose .tbl{margin:10px 0}
 .prose td{font-variant-numeric:tabular-nums}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.lvl-inputs{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 14px}
+.lvl-next{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:0 0 14px}
+.lvl-next > div{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--bg)}
+.lvl-next .k2{margin:0}
+.lvl-next b{font-family:var(--display);font-size:1rem}
+.pill2{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.pill2.ok{background:var(--chip);color:var(--gain)}
+.pill2.no{background:var(--chip);color:var(--muted)}
+tr.locked td:not(:last-child){color:var(--muted)}
 </style>
 
 <div class="wrap">
@@ -161,7 +186,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
         <div><div class="k2">Bring</div><ul class="invlist" id="invList"></ul></div>
         <div id="routeWrap" hidden><div class="k2">Route</div><ul class="invlist" id="routeList"></ul></div>
         <div id="pouchWrap" hidden><div class="k2" id="pouchHead">Rune pouch</div><ul class="invlist" id="pouchList"></ul><p class="note" id="pouchTip"></p></div>
-        <div id="wearWrap"><div class="k2">Wear</div><ul class="invlist" id="wearList"></ul></div>
+        <div id="wearWrap"><div class="k2">Wear</div><ul class="invlist" id="wearList"></ul><p class="note" id="swapNote" hidden></p></div>
         <button class="btn" id="copyBtn" type="button">Copy list</button>
         <p class="note">Bank everything else. Leprechauns at each patch note your produce, and gardeners accept noted payment items.</p>
       </div>
@@ -856,9 +881,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <p>Building each birdhouse also gives a little Crafting XP.</p>
 <h3>What to bring</h3>
 <ul>
-<li>4 logs and 4 clockworks (or 4 pre-made birdhouses)</li>
+<li>4 logs and 4 clockworks (or 4 pre-made birdhouses). The clockworks come back when you collect the old birdhouses, so you only buy them once.</li>
 <li>Chisel and hammer</li>
-<li>40 hop or grain seeds (10 per birdhouse), such as barley, hammerstone or Asgarnian</li>
+<li>40 low-level seeds (10 per birdhouse), such as barley, hammerstone or Asgarnian hop seeds</li>
 <li>Digsite pendant</li>
 </ul>
 <p>The Planner tab builds this list for you.</p>
@@ -889,6 +914,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     <h2 class="ptitle">Daily tasks</h2>
 <p>These reset at <strong>00:00 UTC</strong> (8 PM Toronto in summer, 7 PM in winter). Most are Achievement Diary rewards, and higher tiers give more items.</p>
 <h2>Daily checklist</h2>
+<p class="note">Ticks clear automatically at the daily reset (00:00 UTC).</p>
 <ul>
 <li class="task"><label><input type="checkbox" id="cb_daily_1"> <span>Battlestaves from Zaff</span></label></li>
 <li class="task"><label><input type="checkbox" id="cb_daily_2"> <span>Buckets of sand from Bert</span></label></li>
@@ -1098,6 +1124,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
   <div class="panel prose" data-panel="weekly" hidden>
     <h2 class="ptitle">Weekly tasks</h2>
+<h2>Weekly checklist</h2>
+<p class="note">Ticks clear automatically 7 days after you tick them.</p>
+<ul>
+<li class="task"><label><input type="checkbox" id="cb_weekly_10"> <span>Tears of Guthix (if 7 days passed)</span></label></li>
+<li class="task"><label><input type="checkbox" id="cb_weekly_11"> <span>Miscellania approval and coffer</span></label></li>
+<li class="task"><label><input type="checkbox" id="cb_weekly_12"> <span>Collect Miscellania resources</span></label></li>
+</ul>
 <h2>Tears of Guthix</h2>
 <p><strong>Requirement:</strong> Tears of Guthix quest (43 Firemaking, 20 Crafting, 49 Mining, 44 quest points).</p>
 <p><strong>How often:</strong> once every 7 days from your last visit. You must also have gained <strong>1 quest point or 100,000 total XP</strong> since then.</p>
@@ -1157,12 +1190,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 </tbody>
 </table></div>
 <p>A full 7.5M coffer at 100% approval runs for 150 days. Most players pick herbs or maple logs.</p>
-<h2>Weekly checklist</h2>
-<ul>
-<li class="task"><label><input type="checkbox" id="cb_weekly_10"> <span>Tears of Guthix (if 7 days passed)</span></label></li>
-<li class="task"><label><input type="checkbox" id="cb_weekly_11"> <span>Miscellania approval and coffer</span></label></li>
-<li class="task"><label><input type="checkbox" id="cb_weekly_12"> <span>Collect Miscellania resources</span></label></li>
-</ul>
+
   </div>
 
   <div class="panel prose" data-panel="unlocks" hidden>
@@ -1196,76 +1224,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <li class="task"><label><input type="checkbox" id="cb_unlocks_33"> <span><strong>Morytania Elite</strong>: Harmony Island herb patch</span></label></li>
 </ul>
 <h2>Skill levels</h2>
-<div class="tbl"><table>
-<thead>
-<tr>
-<th>Level</th>
-<th>What it unlocks</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>9 Farming</td>
-<td>Herb runs</td>
-</tr>
-<tr>
-<td>15 Farming</td>
-<td>Tree runs (oak)</td>
-</tr>
-<tr>
-<td>23 Farming</td>
-<td>Giant seaweed</td>
-</tr>
-<tr>
-<td>27 Farming</td>
-<td>Fruit tree runs (apple)</td>
-</tr>
-<tr>
-<td>32 Farming</td>
-<td>Ranarr herbs</td>
-</tr>
-<tr>
-<td>35 Farming</td>
-<td>Teak trees</td>
-</tr>
-<tr>
-<td>45 Farming</td>
-<td>Farming Guild contracts</td>
-</tr>
-<tr>
-<td>5 Hunter / 5 Crafting</td>
-<td>Birdhouse runs</td>
-</tr>
-<tr>
-<td>55 Farming</td>
-<td>Mahogany trees</td>
-</tr>
-<tr>
-<td>65 Farming</td>
-<td>Farming Guild (herb, tree, cactus patches, Hespori)</td>
-</tr>
-<tr>
-<td>72 Farming</td>
-<td>Calquat</td>
-</tr>
-<tr>
-<td>74 Farming</td>
-<td>Crystal tree</td>
-</tr>
-<tr>
-<td>83 Farming</td>
-<td>Spirit trees</td>
-</tr>
-<tr>
-<td>85 Farming</td>
-<td>Celastrus and the Guild fruit tree patch</td>
-</tr>
-<tr>
-<td>90 Farming</td>
-<td>Redwood</td>
-</tr>
-</tbody>
-</table></div>
+<p>Enter your levels to see what you've unlocked for these routines and what's next. They're saved in your browser.</p>
+<div id="lvlTool"></div>
   </div>
 </div>
 
@@ -1318,43 +1278,71 @@ const SPELLS = {
   falador:{name:"Falador Teleport", tab:"Falador teleport tablet", runes:{Air:3, Water:1, Law:1}},
   ardougne:{name:"Ardougne Teleport", tab:"Ardougne teleport tablet", runes:{Water:2, Law:2}},
 };
-// Teleports the player can tick; each patch picks the first one available in its own priority order
+// Teleports the player can tick; each stop uses the first one ticked, in its own priority order
 const TELES = {
-  std:{req:"Normal spellbook. Magic 25 Varrock, 31 Lumbridge, 37 Falador, 45 Camelot. Runes: law + air, with fire (Varrock), earth (Lumbridge) or water (Falador).", label:"Standard teleports (Lumbridge, Varrock, Falador, Camelot)", on:true},
-  ardyspell:{req:"51 Magic and the Plague City quest. Costs 2 law + 2 water runes.", label:"Ardougne Teleport (Plague City)", on:true},
-  explorers:{req:"Lumbridge & Draynor Medium Diary for Explorer's ring 2, which adds the cabbage patch teleport next to the Falador herb patch.", label:"Explorer's ring 2+ (cabbage patch)", item:"Explorer's ring", worn:true, on:true},
-  ardycloak:{req:"Ardougne Medium Diary for Ardougne cloak 2, which adds the Ardougne farm patch teleport.", label:"Ardougne cloak 2+ (farm teleport)", item:"Ardougne cloak", worn:true, on:true},
-  xerics:{req:"Dropped by lizardmen in Kourend. Charge it with lizardman fangs.", label:"Xeric's talisman", item:"Xeric's talisman", on:true},
+  std:{req:"Normal spellbook. Magic 25 Varrock, 31 Lumbridge, 37 Falador, 45 Camelot. Runes: law + air, plus fire (Varrock), earth (Lumbridge) or water (Falador).", label:"Standard teleports (Lumbridge, Varrock, Falador, Camelot)", on:true},
+  ardyspell:{req:"51 Magic and the Plague City quest. Costs 2 law + 2 water runes.", label:"Ardougne Teleport (Plague City)", on:false},
+  explorers:{req:"Lumbridge & Draynor Medium Diary (Explorer's ring 2): 3 cabbage-port teleports a day, to the field next to the Falador farm. Ring 3+ (Hard Diary) makes them unlimited.", label:"Explorer's ring 2+ (cabbage patch)", short:"Explorer's ring cabbage-port", item:"Explorer's ring", worn:true, on:false},
+  ardycloak:{req:"Ardougne Medium Diary: Ardougne cloak 2 or better teleports to the Ardougne farm herb patch.", label:"Ardougne cloak 2+ (farm teleport)", short:"Ardougne cloak farm teleport", item:"Ardougne cloak", worn:true, on:false},
+  xerics:{req:"Dropped by lizardmen in Kourend. Charge it with lizardman fangs.", label:"Xeric's talisman", item:"Xeric's talisman", on:false},
   ecto:{req:"Ghosts Ahoy quest. Refill it at the Ectofuntus after each use.", label:"Ectophial", item:"Ectophial", on:true},
-  stony:{req:"Making Friends with My Arm. Made at Weiss from basalt; teleports to the Troll Stronghold.", label:"Stony basalt", item:"Stony basalt", on:true},
-  icy:{req:"Making Friends with My Arm. Made at Weiss from basalt; teleports to Weiss.", label:"Icy basalt", item:"Icy basalt", on:false},
-  skills:{req:"Craft a dragonstone necklace (72 Crafting) and enchant it, or buy one. The Farming Guild option needs 65 Farming to enter.", label:"Skills necklace", item:"Skills necklace", on:true},
-  fairy:{req:"Start Fairytale II and carry a Dramen or Lunar staff (Lost City). Lumbridge Elite Diary removes the staff. Code CIR for the Farming Guild.", label:"Fairy rings (Dramen staff)", item:"Dramen staff", worn:true, on:false},
-  seedpod:{req:"Reward from Monkey Madness II.", label:"Royal seed pod", item:"Royal seed pod", on:false},
-  spirit:{req:"Tree Gnome Village quest for most spirit trees.", label:"Spirit trees", item:null, on:true},
+  stony:{req:"Making Friends with My Arm. Made from basalt, 3 urt salt and 1 te salt; used up on each teleport. Lands at the Stronghold entrance; teleporting straight to the roof (where the herb patch is) needs 73 Agility and the Hard Fremennik Diary.", label:"Stony basalt", item:"Stony basalt", on:false},
+  icy:{req:"Making Friends with My Arm. Made from basalt and salts; used up on each teleport to Weiss.", label:"Icy basalt", item:"Icy basalt", on:false},
+  skills:{req:"Dragonstone necklace (72 Crafting) enchanted with Lvl-5 Enchant (68 Magic), or buy one. Its Farming Guild option needs 65 Farming to enter. Also reaches the Fishing Guild (near the Ardougne farm) and the Woodcutting Guild (Hosidius).", label:"Skills necklace", item:"Skills necklace", on:false},
+  fairy:{req:"Start Fairytale II and wield a Dramen or Lunar staff (Lost City). The Lumbridge Elite Diary removes the need for the staff. Codes used here: CIR Farming Guild, ALQ Port Phasmatys, AKR Hosidius, DKS Weiss, AJP Varlamore.", label:"Fairy rings (Dramen staff)", item:"Dramen staff", worn:true, on:true},
+  seedpod:{req:"Reward from Monkey Madness II. Teleports to the Grand Tree.", label:"Royal seed pod", short:"Royal seed pod (Grand Tree)", item:"Royal seed pod", on:false},
+  spirit:{req:"Tree Gnome Village quest for the spirit trees at the Grand Exchange, Gnome Stronghold and Tree Gnome Village.", label:"Spirit trees", short:"Spirit tree", item:null, on:true},
   crystal:{req:"Mourning's End Part I. Recharge it with crystal shards.", label:"Teleport crystal", item:"Teleport crystal", on:false},
-  harmony:{req:"Teleport scroll; reading it needs The Great Brain Robbery. The Harmony herb patch needs the Morytania Elite Diary.", label:"Harmony Island teleport scroll", item:"Harmony Island teleport (scroll)", on:false},
-  quetzal:{req:"Children of the Sun to reach Varlamore. Bought from the Hunter Guild.", label:"Quetzal whistle", item:"Quetzal whistle", on:false},
-  digsite:{req:"The Dig Site quest. The Fossil Island option needs Bone Voyage.", label:"Digsite pendant", item:"Digsite pendant", on:true},
+  harmony:{req:"Harmony Island teleport tablet (made at the Arceuus lectern) or the Arceuus spell (65 Magic). Both need The Great Brain Robbery. The Harmony herb patch also needs the Morytania Elite Diary.", label:"Harmony Island teleport (tablet)", short:"Harmony Island teleport tablet", item:"Harmony Island teleport tablet", on:false},
+  quetzal:{req:"Crafted from a whistle blueprint (free from Soar Leader Pitri after 10 Hunters' Rumours), willow logs and a knife. Varlamore needs Children of the Sun.", label:"Quetzal whistle", item:"Quetzal whistle", on:false},
+  digsite:{req:"The Dig Site quest; enchant a ruby necklace (Lvl-3 Enchant, 49 Magic). The Fossil Island option needs Bone Voyage and using the pendant on the Strange Machinery in the House on the Hill once.", label:"Digsite pendant", short:"Digsite pendant (House on the Hill)", item:"Digsite pendant", on:true},
 };
-// Patch option strings: a TELES key, or "std:<spell>" / "ardyspell:<spell>" for spells
+// Patches at the same stop share one teleport (e.g. Catherby herb + fruit tree patches)
+const STOPS = {
+  falador_farm:{name:"Falador farm", tele:["explorers","std:falador"]},
+  catherby:{name:"Catherby", tele:["std:camelot"]},
+  ardougne_farm:{name:"Ardougne farm", tele:["ardycloak","ardyspell:ardougne","skills"], via:{skills:"Fishing Guild"}},
+  hosidius:{name:"Hosidius", tele:["xerics","skills","fairy"], fairy:"AKR", via:{skills:"Woodcutting Guild"}},
+  phasmatys:{name:"Port Phasmatys", tele:["ecto","fairy"], fairy:"ALQ"},
+  troll:{name:"Troll Stronghold", tele:["stony"]},
+  weiss:{name:"Weiss", tele:["icy","fairy"], fairy:"DKS"},
+  guild:{name:"Farming Guild", tele:["skills","fairy"], fairy:"CIR", via:{skills:"Farming Guild"}},
+  harmony:{name:"Harmony Island", tele:["harmony"]},
+  civitas:{name:"Varlamore (Ortus Farm)", tele:["quetzal","fairy"], fairy:"AJP"},
+  lumbridge:{name:"Lumbridge", tele:["std:lumbridge"]},
+  varrock:{name:"Varrock Palace", tele:["std:varrock","spirit"], via:{spirit:"Grand Exchange"}},
+  falador_park:{name:"Falador Park", tele:["std:falador"]},
+  taverley:{name:"Taverley", tele:["std:falador"]},
+  gnome:{name:"Gnome Stronghold", tele:["seedpod","spirit"]},
+  tgv:{name:"Tree Gnome Village", tele:["spirit"]},
+  brimhaven:{name:"Brimhaven", tele:["ardyspell:ardougne"], coins:30, extra:"boat from Ardougne (30 gp)"},
+  lletya:{name:"Lletya", tele:["crystal"]},
+  fossil:{name:"Fossil Island", tele:["digsite"], fallback:"Boat from the Varrock Museum"},
+};
+// Patch = [checkbox label, stop key]
 const RUNS = [
-  {key:"herb", name:"Herb run", patchKind:"herb",
-   patches:[["Falador",["explorers","std:falador"]],["Catherby",["std:camelot"]],["Ardougne",["ardycloak","ardyspell:ardougne"]],["Hosidius",["xerics"]],
-            ["Port Phasmatys",["ecto"]],["Troll Stronghold",["stony"]],["Weiss",["icy"]],["Farming Guild",["skills","fairy"]],
-            ["Harmony Island",["harmony"]],["Civitas illa Fortis",["quetzal"]]],
+  {key:"herb", name:"Herb run", use:"herbs",
+   patches:[["Falador","falador_farm"],["Catherby","catherby"],["Ardougne","ardougne_farm"],["Hosidius","hosidius"],["Port Phasmatys","phasmatys"],
+            ["Troll Stronghold","troll"],["Weiss","weiss"],["Farming Guild","guild"],["Harmony Island","harmony"],["Civitas illa Fortis","civitas"]],
    defaultOn:[0,1,2,3,4,5,7]},
-  {key:"tree", name:"Tree run", patchKind:"tree",
-   patches:[["Lumbridge",["std:lumbridge"]],["Varrock",["std:varrock"]],["Falador",["explorers","std:falador"]],["Taverley",["std:falador"]],["Gnome Stronghold",["seedpod","spirit"]],["Farming Guild",["skills","fairy"]]],
+  {key:"tree", name:"Tree run", use:"tree",
+   patches:[["Lumbridge","lumbridge"],["Varrock","varrock"],["Falador","falador_park"],["Taverley","taverley"],["Gnome Stronghold","gnome"],["Farming Guild","guild"]],
    defaultOn:[0,1,2,3,4,5]},
-  {key:"fruit", name:"Fruit tree run", patchKind:"fruit",
-   patches:[["Gnome Stronghold",["seedpod","spirit"]],["Tree Gnome Village",["spirit"]],["Catherby",["std:camelot"]],["Brimhaven",["ardyspell:ardougne"]],["Lletya",["crystal"]],["Farming Guild",["skills","fairy"]]],
+  {key:"fruit", name:"Fruit tree run", use:"fruit tree",
+   patches:[["Gnome Stronghold","gnome"],["Tree Gnome Village","tgv"],["Catherby","catherby"],["Brimhaven","brimhaven"],["Lletya","lletya"],["Farming Guild","guild"]],
    defaultOn:[0,1,2,3]},
-  {key:"hard", name:"Hardwood trees (Fossil Island)", patchKind:"hard", patches:[], defaultOn:[]},
-  {key:"bird", name:"Birdhouse run", patchKind:null, patches:[], defaultOn:[]},
-  {key:"weed", name:"Giant seaweed", patchKind:null, patches:[], defaultOn:[]},
-  {key:"daily", name:"Daily collects", patchKind:null, patches:[], defaultOn:[]},
+  {key:"hard", name:"Hardwood trees (Fossil Island)", patches:[], defaultOn:[]},
+  {key:"bird", name:"Birdhouse run", patches:[], defaultOn:[]},
+  {key:"weed", name:"Giant seaweed", patches:[], defaultOn:[]},
+  {key:"daily", name:"Daily collects", patches:[], defaultOn:[]},
 ];
+// Worn items that share an equipment slot: the first listed stays worn, the rest go in the inventory
+const SLOT_PRIORITY = {weapon:["Dramen staff","Staff of air","Magic secateurs"], cape:["Ardougne cloak","Diving apparatus"]};
+const SWAP_NOTE = {
+  "Magic secateurs": k => `Magic secateurs go in your inventory (they still work there): the ${k} uses your weapon slot.`,
+  "Staff of air": k => `Staff of air goes in your inventory: wield the ${k} for fairy rings and swap to the staff before casting.`,
+  "Diving apparatus": k => `Diving apparatus goes in your inventory: the ${k} uses your cape slot. Put the apparatus on before diving at Fossil Island.`,
+};
 const TREE_TYPES = {oak:["Oak sapling","Basket of tomatoes",1],willow:["Willow sapling","Basket of apples",1],maple:["Maple sapling","Basket of oranges",1],yew:["Yew sapling","Cactus spine",10],magic:["Magic sapling","Coconut",25]};
 const FRUIT_TYPES = {apple:["Apple sapling","Sweetcorn",9],papaya:["Papaya sapling","Pineapple",10],palm:["Palm sapling","Papaya fruit",15],dragonfruit:["Dragonfruit sapling","Coconut",15]};
 const HARD_TYPES = {teak:["Teak sapling","Limpwurt root",15],mahogany:["Mahogany sapling","Yanillian hops",25]};
@@ -1374,7 +1362,7 @@ function buildRuns(){
   }).join("") + `<div class="run on"><label>General</label><div class="opts" style="display:flex">
       <label>Compost <select id="pl_comp"><option value="bucket">Bottomless compost bucket</option><option value="ultra">Ultracompost (1 per patch)</option><option value="none">None</option></select></label>
       <label><input type="checkbox" id="pl_secateurs" checked> Magic secateurs</label>
-      <label><input type="checkbox" id="pl_rake" checked> Bring a rake</label>\n      <label>Teleport runes <select id="pl_pouchType"><option value="pouch">Rune pouch (3 types)</option><option value="divine">Divine rune pouch (4 types)</option><option value="none">No pouch: use tablets</option></select></label>\n      <label><input type="checkbox" id="pl_airstaff"> Wield a staff of air</label></div></div><div class="run on"><label>Teleports you have <span class="note" style="font-weight:400">· hover * for requirements</span></label><div class="opts" style="display:flex">${Object.entries(TELES).map(([k,t])=>`<label><input type="checkbox" id="tp_${k}" ${t.on?"checked":""}> ${t.label}</label><span class="star" tabindex="0" role="note" aria-label="Requirements: ${t.req.replace(/"/g,"&quot;")}" data-tip="${t.req.replace(/"/g,"&quot;")}">*</span>`).join("")}</div></div>`;
+      <label><input type="checkbox" id="pl_rake" checked> Bring a rake</label>\n      <label>Teleport runes <select id="pl_pouchType"><option value="pouch">Rune pouch (3 types)</option><option value="divine">Divine rune pouch (4 types)</option><option value="none" selected>No pouch: use tablets</option></select></label>\n      <label><input type="checkbox" id="pl_airstaff"> Wield a staff of air</label></div></div><div class="run on"><label>Teleports you have <span class="note" style="font-weight:400">· hover * for requirements</span></label><div class="opts" style="display:flex">${Object.entries(TELES).map(([k,t])=>`<span class="tp"><label><input type="checkbox" id="tp_${k}" ${t.on?"checked":""}> ${t.label}</label><span class="star" tabindex="0" role="note" aria-label="Requirements: ${t.req.replace(/"/g,"&quot;")}" data-tip="${t.req.replace(/"/g,"&quot;")}">*</span></span>`).join("")}</div></div>`;
 }
 
 // Item icons from the OSRS Wiki (load when the page can reach the wiki; otherwise the text label stays)
@@ -1383,8 +1371,8 @@ const ICON_OVERRIDES = {
   "Skills necklace":["Skills_necklace(6).png","Skills_necklace(4).png"],
   "Digsite pendant":["Digsite_pendant_(5).png","Digsite_pendant_(1).png"],
   "Teleport crystal":["Teleport_crystal_(5).png","Teleport_crystal_(1).png"],
-  "Harmony Island teleport (scroll)":["Harmony_island_teleport.png"],
-  "Hop or grain seeds":["Barley_seed_5.png","Barley_seed.png"],
+  "Hop seeds":["Barley_seed_5.png","Barley_seed.png"],
+  "Harmony Island teleport tablet":["Harmony_island_teleport_(tablet).png"],
   "Explorer's ring":["Explorer's_ring_4.png","Explorer's_ring_3.png"],
   "Ardougne cloak":["Ardougne_cloak_4.png","Ardougne_cloak_3.png"],
   "Basket of tomatoes":["Tomatoes(5).png"],
@@ -1406,20 +1394,24 @@ function iconCandidates(label, qty){
   if(name!=="Coins") list.push(`${base}.png`, `${base}_5.png`, `${base}(5).png`);
   return [...new Set(list)].map(f=>WIKI_IMG+encodeURIComponent(f).replace(/%2F/g,"/"));
 }
+const ICON_OK = new Map(), ICON_BAD = new Set();       // remembered per page load so failed icons aren't re-requested
 function iconImg(label, qty){
-  const c = iconCandidates(label, qty);
-  return `<img class="ic" alt="${label.replace(/"/g,"&quot;")}" loading="lazy" referrerpolicy="no-referrer" src="${c[0]}" data-c='${JSON.stringify(c.slice(1)).replace(/'/g,"&#39;")}'>`;
+  const c = iconCandidates(label, qty), key = c.join("|");
+  if(ICON_BAD.has(key)) return "";
+  const good = ICON_OK.get(key);
+  const q = t => t.replace(/&/g,"&amp;").replace(/"/g,"&quot;");
+  return `<img class="ic" alt="${q(label)}" loading="lazy" referrerpolicy="no-referrer" src="${good||c[0]}" data-k="${q(key)}" data-c='${good ? "[]" : JSON.stringify(c.slice(1)).replace(/'/g,"&#39;")}'>`;
 }
 function wireIcons(){
   document.querySelectorAll("img.ic:not([data-w])").forEach(img=>{
     img.dataset.w = "1";
     const ok = ()=>{ const s=img.closest(".slot"); if(s) s.classList.add("hasimg"); };
-    if(img.complete && img.naturalWidth) ok();
-    img.addEventListener("load", ok);
+    if(img.complete && img.naturalWidth){ ICON_OK.set(img.dataset.k, img.currentSrc || img.src); ok(); }
+    img.addEventListener("load", ()=>{ ICON_OK.set(img.dataset.k, img.currentSrc || img.src); ok(); });
     img.addEventListener("error", ()=>{
       let rest = []; try{ rest = JSON.parse(img.dataset.c||"[]"); }catch(e){}
       if(rest.length){ img.dataset.c = JSON.stringify(rest.slice(1)); img.src = rest[0]; }
-      else img.remove();
+      else { ICON_BAD.add(img.dataset.k); img.remove(); }
     });
   });
 }
@@ -1427,24 +1419,27 @@ function wireIcons(){
 // What each item needs (shown on hover)
 const SEED_LV = {Ranarr:32, Toadflax:38, Kwuarm:56, Snapdragon:62, Torstol:85};
 const SAP_LV = {Oak:15, Willow:30, Maple:45, Yew:60, Magic:75, Apple:27, Papaya:57, Palm:68, Dragonfruit:81, Teak:35, Mahogany:55};
-const PAY_FOR = {"Basket of tomatoes":"oak trees","Basket of apples":"willow trees","Basket of oranges":"maple trees","Cactus spine":"yew trees (10 each)","Coconut":"magic trees (25) or dragonfruit trees (15)","Sweetcorn":"apple trees (9 each)","Pineapple":"papaya trees (10 each)","Papaya fruit":"palm trees (15 each)","Limpwurt root":"teak trees (15 each)","Yanillian hops":"mahogany trees (25 each)"};
+const PAY_FOR = {"Basket of tomatoes":"oak trees (1 each)","Basket of apples":"willow trees (1 each)","Basket of oranges":"maple trees (1 each)","Cactus spine":"yew trees (10 each)","Coconut":"magic trees (25) or dragonfruit trees (15)","Sweetcorn":"apple trees (9 each)","Pineapple":"papaya trees (10 each)","Papaya fruit":"palm trees (15 each)","Limpwurt root":"teak trees (15 each)","Yanillian hops":"mahogany trees (25 each)"};
 const SPELL_LV = {Air:"Air: every standard teleport", Law:"Law: every teleport", Earth:"Earth: Lumbridge Teleport (31 Magic)", Fire:"Fire: Varrock Teleport (25 Magic)", Water:"Water: Falador Teleport (37 Magic), Ardougne Teleport (51 Magic)"};
 const ITEM_REQ = {
   "Seaweed spore":"Farming 23 · Bone Voyage",
   "Magic secateurs":"Fairytale I – Growing Pains · works from the inventory",
   "Bottomless compost bucket":"Hespori drop (Farming 65), fill with compost",
   "Ultracompost":"Supercompost + 2 volcanic ash",
-  "Seed dibber":"Farming tool", "Spade":"Farming tool", "Rake":"Farming tool",
+  "Rake":"Farming tool · clears weeds",
   "Chisel":"Needed to build birdhouses", "Hammer":"Needed to build birdhouses",
   "Clockwork":"Birdhouse part · made from a steel bar at a clockmaker's bench · only needed for your first run if you reuse it",
-  "Hop or grain seeds":"Birdhouse bait · 10 per birdhouse",
+  "Hop seeds":"Birdhouse bait · 10 low-level seeds per birdhouse (hops, allotment, flower or herb seeds), or 5 high-level seeds",
   "Rune pouch":"Bought for 750 Slayer reward points · holds 3 rune types",
-  "Divine rune pouch":"Upgrade a rune pouch with a divine rune pouch scroll (from Chambers of Xeric or Theatre of Blood) · holds 4 rune types",
+  "Divine rune pouch":"Rune pouch + thread of Elidinis (Tombs of Amascut), stitched with a needle at 75 Crafting · holds 4 rune types",
   "Staff of air":"No requirement · replaces air runes while wielded",
   "Fishbowl helmet":"Bone Voyage · needed underwater on Fossil Island",
   "Diving apparatus":"Bone Voyage · needed underwater on Fossil Island",
-  "Flax (noted)":"Kandarin Diary for the flax keeper in Seers' Village",
-  "Coins":"Zaff's battlestaves (7,000 each), stump clearing (200), Brimhaven boat (30)",
+  "Flax (noted)":"Flax keeper in Seers' Village takes noted flax and gives noted bow strings · 30 / 60 / 120 / 250 a day by Kandarin Diary tier",
+  "Coins":"Zaff's battlestaves (7,000 each), stump clearing (200 per tree), Brimhaven boat (30)",
+  "Spade":"Farming tool · plants saplings and clears dead plants",
+  "Seed dibber":"Farming tool · plants seeds and spores",
+  "Harmony Island teleport tablet":"The Great Brain Robbery to use · made at the Arceuus lectern",
 };
 function itemReq(label){
   const name = label.replace(/ \(noted\)$/,"");
@@ -1453,10 +1448,10 @@ function itemReq(label){
   let m;
   if((m = name.match(/^(\w+) seed$/)) && SEED_LV[m[1]]) return `Farming ${SEED_LV[m[1]]}`;
   if((m = name.match(/^(\w+) sapling$/)) && SAP_LV[m[1]]) return `Farming ${SAP_LV[m[1]]}${/Teak|Mahogany/.test(m[1])?" · Bone Voyage":""}`;
-  if(PAY_FOR[name]) return `Protection payment for ${PAY_FOR[name]}`;
+  if(PAY_FOR[name]) return `Protection payment for ${PAY_FOR[name]} · gardeners take it noted, but only this exact item`;
   if((m = name.match(/^(\w+) rune$/)) && SPELL_LV[m[1]]) return SPELL_LV[m[1]];
-  if((m = name.match(/^(.+?) ?[Bb]ird house$/)) || name==="Bird house"){
-    const t = m && m[1] ? m[1] : "Regular"; const l = LOGS.find(x=>x.name===t);
+  if((m = name.match(/^(\w+) birdhouse$/)) || name==="Bird house"){
+    const t = m ? m[1] : "Regular"; const l = LOGS.find(x=>x.name===t);
     if(l) return `Hunter ${l.hunter} to place · Crafting ${l.lvl} to build`;
   }
   if((m = name.match(/^(\w+) logs$/))){ const l = LOGS.find(x=>x.name===m[1]); if(l) return `${l.name} birdhouse: Hunter ${l.hunter}, Crafting ${l.lvl}`; }
@@ -1471,93 +1466,99 @@ const esc = t => t.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&l
 
 function renderPlan(){
   const inv = new Map(), wear = new Set();
-  const add = (name, qty=1, stack=true, note="") => {
-    const k = name;
-    const cur = inv.get(k) || {name, qty:0, stack, note};
-    cur.qty += qty; inv.set(k, cur);
+  const add = (name, qty=1, stack=true) => {
+    if(!(qty>0)) return;                                   // never list an item with 0 quantity
+    const cur = inv.get(name) || {name, qty:0, stack};
+    cur.qty += qty; inv.set(name, cur);
   };
   const addOnce = name => { if(!inv.has(name)) inv.set(name, {name, qty:1, stack:true}); };
-  const on = k => $("pl_"+k)?.checked;
-  let patchCount = 0, farming = false;
-  RUNS.forEach(r=>{ $("run_"+r.key).classList.toggle("on", !!on(r.key)); });
-
-  const comp = $("pl_comp").value;
-  const useCompost = n => { patchCount += n; };
-  const casts = {}, route = [];
+  const on = k => !!$("pl_"+k)?.checked;
   const hasTp = k => !!$("tp_"+k)?.checked;
-  const useTele = (patch, opts) => {
-    for(const o of opts){
+  RUNS.forEach(r=>{ $("run_"+r.key).classList.toggle("on", on(r.key)); });
+
+  // Stops: one teleport per location, shared by every patch there
+  const casts = {}, stops = new Map();
+  const visit = (stopKey, use) => {
+    const st = STOPS[stopKey];
+    if(stops.has(stopKey)){ const v = stops.get(stopKey); if(!v.uses.includes(use)) v.uses.push(use); return; }
+    let how = null;
+    for(const o of st.tele){
       const [k, spell] = o.split(":");
       if(!hasTp(k)) continue;
-      if(spell){ casts[spell]=(casts[spell]||0)+1; if(spell==="ardougne" && patch==="Brimhaven") add("Coins",30,true);
-        route.push([patch, `${SPELLS[spell].name}${patch==="Brimhaven"?" + boat (30 gp)":""}`]); return; }
-      const t = TELES[k];
-      if(t.item){ if(t.worn) wear.add(t.item); else addOnce(t.item); }
-      route.push([patch, t.label + (k==="fairy" && patch==="Farming Guild" ? " (CIR)" : "")]); return;
+      if(spell){ casts[spell] = (casts[spell]||0) + 1; how = SPELLS[spell].name; }
+      else {
+        const t = TELES[k];
+        if(t.item){ if(t.worn) wear.add(t.item); else addOnce(t.item); }
+        how = k==="fairy" && st.fairy ? `Fairy ring ${st.fairy}` : (t.short || t.label);
+        if(st.via && st.via[k]) how += ` (${st.via[k]})`;
+      }
+      break;
     }
-    route.push([patch, "No teleport ticked: walk or run"]);
+    const missing = !how && !st.fallback;
+    if(!how) how = st.fallback || "No teleport ticked: walk or run";
+    if(st.extra) how += ` + ${st.extra}`;
+    if(st.coins) add("Coins", st.coins, true);
+    stops.set(stopKey, {name:st.name, uses:[use], how, missing});
   };
-  const patchTeles = r => {
-    let n = 0;
-    r.patches.forEach((p,i)=>{ if($(`pl_${r.key}_p${i}`)?.checked){ n++; useTele(`${p[0]}`, p[1]); } });
-    return n;
-  };
-  const fossil = (() => { let done=false; return () => { if(done) return; done=true; useTele("Fossil Island", ["digsite"]); if(!hasTp("digsite")) route[route.length-1][1] = "Boat from the Varrock Museum"; }; })();
+  const runPatches = r => { let n = 0; r.patches.forEach((p,i)=>{ if($(`pl_${r.key}_p${i}`)?.checked){ n++; visit(p[1], r.use); } }); return n; };
 
+  let patchCount = 0, farming = false, seedRun = false;
   if(on("herb")){
-    const r = RUNS[0]; const n = patchTeles(r); farming = true;
-    add(`${$("pl_herbSeed").value} seed`, n, true); useCompost(n);
+    const n = runPatches(RUNS[0]);
+    add(`${$("pl_herbSeed").value} seed`, n, true); patchCount += n;
+    if(n){ farming = true; seedRun = true; }
   }
   if(on("tree")){
-    const r = RUNS[1]; const n = patchTeles(r); farming = true;
+    const n = runPatches(RUNS[1]);
     const [sap, pay, pq] = TREE_TYPES[$("pl_treeType").value];
-    add(sap, n, false); if(on("treePay")) add(`${pay} (noted)`, n*pq, true); useCompost(n);
+    add(sap, n, false); if(on("treePay")) add(`${pay} (noted)`, n*pq, true);
     if(on("stump")) add("Coins", 200*n, true);
+    patchCount += n; if(n) farming = true;
   }
   if(on("fruit")){
-    const r = RUNS[2]; const n = patchTeles(r); farming = true;
+    const n = runPatches(RUNS[2]);
     const [sap, pay, pq] = FRUIT_TYPES[$("pl_fruitType").value];
-    add(sap, n, false); if(on("fruitPay")) add(`${pay} (noted)`, n*pq, true); useCompost(n);
+    add(sap, n, false); if(on("fruitPay")) add(`${pay} (noted)`, n*pq, true);
+    patchCount += n; if(n) farming = true;
   }
   if(on("hard")){
-    const n = Math.max(1, Math.min(3, +$("pl_hardN").value||3)); farming = true;
+    const n = Math.max(1, Math.min(3, Math.round(+$("pl_hardN").value)||3));
     const [sap, pay, pq] = HARD_TYPES[$("pl_hardType").value];
-    add(sap, n, false); if(on("hardPay")) add(`${pay} (noted)`, n*pq, true); fossil(); useCompost(n);
+    add(sap, n, false); if(on("hardPay")) add(`${pay} (noted)`, n*pq, true);
+    visit("fossil", "hardwood"); patchCount += n; farming = true;
   }
   if(on("weed")){
-    farming = true; add("Seaweed spore", 2, true); fossil(); useCompost(2);
+    add("Seaweed spore", 2, true); visit("fossil", "seaweed"); patchCount += 2; farming = true; seedRun = true;
     wear.add("Fishbowl helmet"); wear.add("Diving apparatus");
   }
   if(on("bird")){
     const log = LOGS[+$("bLog").value];
-    fossil();
-    if(on("birdBuilt")) add(`${log.name==="Regular"?"":log.name+" "}Bird house`.trim(), 4, false);
-    else { add(`${log.name} logs`, 4, false); if(!on("birdReuse")) add("Clockwork", 4, false); add("Chisel",1,false); add("Hammer",1,false); }
-    add("Hop or grain seeds", 40, true);
+    visit("fossil", "birdhouses");
+    if(on("birdBuilt")) add(log.name==="Regular" ? "Bird house" : `${log.name} birdhouse`, 4, false);
+    else { add(log.name==="Regular" ? "Logs" : `${log.name} logs`, 4, false); if(!on("birdReuse")) add("Clockwork", 4, false); add("Chisel",1,false); add("Hammer",1,false); }
+    add("Hop seeds", 40, true);
   }
   if(on("daily")){
-    const staves = +($("dq_staff")?.value||0), flax = +($("dq_flax")?.value||0);
-    if(staves) add("Coins", staves*7000, true);
-    if(flax) add("Flax (noted)", flax, true);
+    const staves = Math.max(0, +($("dq_staff")?.value||0)), flax = Math.max(0, +($("dq_flax")?.value||0));
+    add("Coins", staves*7000, true);
+    add("Flax (noted)", flax, true);
   }
   if(farming){
-    add("Seed dibber",1,false); add("Spade",1,false);
+    if(seedRun) add("Seed dibber",1,false);                // dibber only for seeds and spores; saplings just need a spade
+    add("Spade",1,false);
     if(on("rake")) add("Rake",1,false);
     if(on("secateurs")) wear.add("Magic secateurs");
-    if(comp==="bucket" && patchCount) add("Bottomless compost bucket",1,false);
-    if(comp==="ultra" && patchCount) add("Ultracompost", patchCount, false);
+    if(patchCount && $("pl_comp").value==="bucket") add("Bottomless compost bucket",1,false);
+    if(patchCount && $("pl_comp").value==="ultra") add("Ultracompost", patchCount, false);
   }
 
-  // Teleports: fill the rune pouch with the spells that fit, use tablets for the rest
+  // Teleport runes: fill the pouch with the spells that fit, tablets for the rest
   const pouchKind = $("pl_pouchType").value;            // none | pouch | divine
   const cap = pouchKind==="divine" ? 4 : pouchKind==="pouch" ? 3 : 0;
   const pouchName = pouchKind==="divine" ? "Divine rune pouch" : "Rune pouch";
-  const dramen = wear.has("Dramen staff");
   const wantAirStaff = cap>0 && on("airstaff");
-  let staffNote = "";
   const spellKeys = Object.keys(casts);
   const typesOf = (keys, noAir) => { const t = new Set(); keys.forEach(k=>Object.keys(SPELLS[k].runes).forEach(r=>{ if(!(noAir && r==="Air")) t.add(r); })); return t; };
-  // Pick the set of spells that covers the most casts within the pouch's rune-type limit
   let best = {keys:[], covered:0, types:0};
   if(cap>0){
     for(let mask=1; mask < (1<<spellKeys.length); mask++){
@@ -1575,52 +1576,103 @@ function renderPlan(){
     if(inPouch.has(k)) Object.entries(sp.runes).forEach(([r,q])=>{ runeTotals[r]=(runeTotals[r]||0)+q*c; });
     else add(sp.tab, c, true);
   });
-  if(wantAirStaff && runeTotals.Air){
-    delete runeTotals.Air;
-    if(dramen){ add("Staff of air", 1, false); staffNote = " Wield the Dramen staff for fairy rings and swap to the staff of air from your inventory before casting."; }
-    else wear.add("Staff of air");
-  }
-  // Magic secateurs work from the inventory; they go there whenever a staff is wielded
-  if(wear.has("Magic secateurs") && (dramen || wear.has("Staff of air"))){
-    wear.delete("Magic secateurs"); add("Magic secateurs", 1, false);
-  }
+  if(wantAirStaff && runeTotals.Air){ delete runeTotals.Air; wear.add("Staff of air"); }
+
+  // Equipment slots: one item per slot, the rest go in the inventory
+  const swaps = [];
+  Object.values(SLOT_PRIORITY).forEach(prio=>{
+    const here = prio.filter(it=>wear.has(it));
+    here.slice(1).forEach(it=>{ wear.delete(it); add(it, 1, false); swaps.push(SWAP_NOTE[it] ? SWAP_NOTE[it](here[0]) : `${it} goes in your inventory: ${here[0]} uses the same slot.`); });
+  });
+
   const usePouch = cap>0;
   const runeTypes = Object.keys(runeTotals);
   if(usePouch && runeTypes.length) addOnce(pouchName);
   $("pouchWrap").hidden = !(usePouch && runeTypes.length);
   $("pouchHead").textContent = pouchName + (usePouch ? ` (${runeTypes.length} / ${cap} rune types)` : "");
+  const listSp = keys => keys.map(k=>`${SPELLS[k].name}${casts[k]>1?" ×"+casts[k]:""}`).join(", ");
   if(usePouch && runeTypes.length){
-    const listSp = keys => keys.map(k=>`${SPELLS[k].name}${casts[k]>1?" ×"+casts[k]:""}`).join(", ");
     $("pouchList").innerHTML = runeTypes.map(r=>`<li title="${esc(tipText(r+' rune', runeTotals[r]))}"><span>${iconImg(r+" rune", runeTotals[r])}${r} rune</span><span>× ${runeTotals[r]}</span></li>`).join("");
     let tip = `Runes for: ${listSp(best.keys)}.`;
     const left = spellKeys.filter(k=>!inPouch.has(k));
     if(left.length) tip += ` Not enough room for ${listSp(left)}, so tablets were added for ${left.length>1?"those":"that"}.`;
     if(left.length && pouchKind==="pouch") tip += " A divine rune pouch (4 rune types) would fit more.";
-    $("pouchTip").textContent = tip + staffNote;
+    $("pouchTip").textContent = tip;
   }
 
-  // Expand into slots
-  const order = ["Coins"];
-  const list = [...inv.values()].sort((a,b)=>(order.includes(b.name)-order.includes(a.name)) || (a.stack===b.stack?0:(a.stack?-1:1)));
+  // Expand into inventory slots
+  const list = [...inv.values()].sort((a,b)=>((b.name==="Coins")-(a.name==="Coins")) || (a.stack===b.stack?0:(a.stack?-1:1)));
   const slots = [];
   list.forEach(it=>{ if(it.stack) slots.push({label:it.name, qty:it.qty}); else for(let i=0;i<it.qty;i++) slots.push({label:it.name, qty:1}); });
   const used = slots.length;
-  $("slotTxt").textContent = used ? `${used} / 28 slots` : "Tick a run to start";
   $("meterBar").style.width = Math.min(100, used/28*100)+"%";
   $("meter").classList.toggle("over", used>28);
-  if(used>28) $("slotTxt").textContent = `${used} / 28 slots: too many for one trip. Split it into two bank trips or bring pre-built birdhouses.`;
+  $("slotTxt").textContent = !used ? (RUNS.some(r=>on(r.key)) ? "Nothing to bring yet: tick at least one patch" : "Tick a run to start") : used<=28 ? `${used} / 28 slots`
+    : `${used} / 28 slots: too many for one trip.${on("bird") && !on("birdBuilt") ? " Pre-built birdhouses save slots, or" : ""} Split it into two bank trips.`;
   const short = s => s.replace(" (noted)","").replace("Bottomless compost bucket","Compost bucket");
-  const shownQty = q => q>=100000 ? Math.round(q/1000)+"K" : q;
-  let cells = slots.slice(0,28).map(s=>`<div class="slot" tabindex="0" data-name="${esc(tipText(s.label, s.qty))}" aria-label="${s.label}"><b>${s.qty>1?shownQty(s.qty):"&nbsp;"}</b>${iconImg(s.label, s.qty)}<span class="lbl">${short(s.label)}</span>${/\(noted\)/.test(s.label)?'<span class="nt">noted</span>':''}</div>`);
+  const shownQty = q => q>=10000000 ? Math.floor(q/1000000)+"M" : q>=100000 ? Math.floor(q/1000)+"K" : q;
+  let cells = slots.slice(0,28).map(s=>`<div class="slot" tabindex="0" data-name="${esc(tipText(s.label, s.qty))}" aria-label="${esc(s.label)}"><b>${s.qty>1?shownQty(s.qty):"&nbsp;"}</b>${iconImg(s.label, s.qty)}<span class="lbl">${short(s.label)}</span>${/\(noted\)/.test(s.label)?'<span class="nt">noted</span>':''}</div>`);
   while(cells.length<28) cells.push(`<div class="slot empty"></div>`);
   $("slots").innerHTML = cells.join("");
   $("invList").innerHTML = list.length ? list.map(it=>`<li title="${esc(tipText(it.name, it.qty))}"><span>${iconImg(it.name, it.qty)}${it.name}</span><span>${it.name==="Coins"?fmt(it.qty)+" gp":"× "+fmt(it.qty)}</span></li>`).join("") : `<li><span class="note">Nothing yet. Tick a run on the left.</span><span></span></li>`;
-  $("wearWrap").hidden = wear.size===0;
+  const route = [...stops.values()];
   $("routeWrap").hidden = route.length===0;
-  $("routeList").innerHTML = route.map(([p,t])=>`<li><span>${p}</span><span style="font-family:var(--body);text-align:right;${/^No teleport/.test(t)?"color:var(--loss)":""}">${t}</span></li>`).join("");
-  queueMicrotask(wireIcons);
+  $("routeList").innerHTML = route.map(v=>`<li><span>${v.name} <span class="note">· ${v.uses.join(", ")}</span></span><span class="how"${v.missing?' style="color:var(--loss)"':""}>${v.how}</span></li>`).join("");
+  $("wearWrap").hidden = wear.size===0 && swaps.length===0;
   $("wearList").innerHTML = [...wear].map(w=>`<li title="${esc(tipText(w,1))}"><span>${iconImg(w,1)}${w}</span><span>worn</span></li>`).join("");
-  window.__planText = list.map(it=>`${it.name}: ${it.name==="Coins"?fmt(it.qty)+" gp":fmt(it.qty)}`).concat(usePouch?runeTypes.map(r=>`  ${r} rune (in pouch): ${runeTotals[r]}`):[]).concat([...wear].map(w=>`${w} (worn)`)).join("\n");
+  $("swapNote").hidden = swaps.length===0;
+  $("swapNote").textContent = swaps.join(" ");
+  queueMicrotask(wireIcons);
+  window.__planText = [
+    ...list.map(it=>`${it.name}: ${it.name==="Coins"?fmt(it.qty)+" gp":fmt(it.qty)}`),
+    ...(usePouch ? runeTypes.map(r=>`  ${r} rune (in ${pouchName.toLowerCase()}): ${runeTotals[r]}`) : []),
+    ...[...wear].map(w=>`${w} (worn)`),
+    ...(route.length ? ["", "Route:", ...route.map(v=>`  ${v.name} (${v.uses.join(", ")}): ${v.how}`)] : []),
+    ...(swaps.length ? ["", ...swaps] : []),
+  ].join("\n");
+}
+
+
+// ---------- Skill level checker (Unlocks tab) ----------
+const LEVEL_UNLOCKS = [
+  ["Farming",9,"Herb runs (guam)"],["Farming",15,"Tree runs (oak)"],["Farming",23,"Giant seaweed"],["Farming",27,"Fruit tree runs (apple)"],
+  ["Farming",30,"Willow trees"],["Farming",32,"Ranarr herbs"],["Farming",35,"Teak trees (Fossil Island)"],["Farming",38,"Toadflax herbs"],
+  ["Farming",45,"Maple trees · Farming Guild contracts"],["Farming",55,"Mahogany trees (Fossil Island)"],["Farming",56,"Kwuarm herbs"],
+  ["Farming",60,"Yew trees"],["Farming",62,"Snapdragon herbs"],["Farming",65,"Farming Guild (herb, tree, cactus patches) · Hespori"],
+  ["Farming",68,"Palm trees"],["Farming",72,"Calquat trees"],["Farming",74,"Crystal tree (Song of the Elves)"],["Farming",75,"Magic trees"],
+  ["Farming",81,"Dragonfruit trees"],["Farming",83,"Spirit trees"],["Farming",85,"Torstol herbs · Celastrus · Guild fruit tree patch"],["Farming",90,"Redwood trees"],
+  ["Hunter",5,"Regular birdhouses"],["Hunter",14,"Oak birdhouses"],["Hunter",24,"Willow birdhouses"],["Hunter",34,"Teak birdhouses"],
+  ["Hunter",44,"Maple birdhouses"],["Hunter",49,"Mahogany birdhouses"],["Hunter",59,"Yew birdhouses"],["Hunter",74,"Magic birdhouses"],["Hunter",89,"Redwood birdhouses"],
+  ["Crafting",5,"Build regular birdhouses"],["Crafting",15,"Build oak birdhouses"],["Crafting",25,"Build willow birdhouses"],["Crafting",35,"Build teak birdhouses"],
+  ["Crafting",45,"Build maple birdhouses"],["Crafting",50,"Build mahogany birdhouses"],["Crafting",60,"Build yew birdhouses"],
+  ["Crafting",66,"Air battlestaves (Zaff's staves + air orbs)"],["Crafting",72,"Skills necklace (dragonstone necklace)"],
+  ["Crafting",75,"Build magic birdhouses · Divine rune pouch"],["Crafting",90,"Build redwood birdhouses"],
+  ["Magic",25,"Varrock Teleport"],["Magic",31,"Lumbridge Teleport"],["Magic",37,"Falador Teleport"],["Magic",45,"Camelot Teleport"],
+  ["Magic",49,"Lvl-3 Enchant (digsite pendant)"],["Magic",51,"Ardougne Teleport (Plague City)"],["Magic",65,"Harmony Island Teleport (Arceuus)"],
+  ["Magic",68,"Lvl-5 Enchant (skills necklace)"],
+  ["Agility",73,"Stony basalt straight to the Troll Stronghold roof (with Hard Fremennik Diary)"],
+];
+const LV_SKILLS = ["Farming","Hunter","Crafting","Magic","Agility"];
+function buildLevels(){
+  const box = $("lvlTool"); if(!box) return;
+  box.innerHTML = `<div class="lvl-inputs">${LV_SKILLS.map(k=>`<label class="f">${k}<input type="number" id="lv_${k}" min="1" max="99" value="1"></label>`).join("")}
+    <label class="f" style="display:flex;align-items:center;gap:6px;align-self:end"><input type="checkbox" id="lv_onlyLocked"> Show only what's still locked</label></div>
+    <div class="lvl-next" id="lvlNext"></div>
+    <div class="tbl"><table><thead><tr><th>Skill</th><th class="n">Level</th><th>Unlocks</th><th>Status</th></tr></thead><tbody id="lvlBody"></tbody></table></div>`;
+}
+function renderLevels(){
+  if(!$("lvlBody")) return;
+  const lv = Object.fromEntries(LV_SKILLS.map(k=>[k, Math.max(1, Math.min(99, Math.round(+$("lv_"+k).value)||1))]));
+  const onlyLocked = $("lv_onlyLocked").checked;
+  $("lvlNext").innerHTML = LV_SKILLS.map(k=>{
+    const next = LEVEL_UNLOCKS.find(([s,l])=>s===k && l>lv[k]);
+    const have = LEVEL_UNLOCKS.filter(([s,l])=>s===k && l<=lv[k]).length, total = LEVEL_UNLOCKS.filter(([s])=>s===k).length;
+    return `<div><div class="k2">${k} ${lv[k]} · ${have}/${total} unlocked</div>${next ? `<b>Next: ${next[2]}</b><div class="note">at ${next[1]} · ${next[1]-lv[k]} level${next[1]-lv[k]>1?"s":""} to go</div>` : `<b>Everything unlocked</b>`}</div>`;
+  }).join("");
+  $("lvlBody").innerHTML = LEVEL_UNLOCKS.filter(([s,l])=>!onlyLocked || l>lv[s]).map(([s,l,what])=>{
+    const ok = lv[s] >= l;
+    return `<tr class="${ok?"":"locked"}"><td>${s}</td><td class="n">${l}</td><td>${what}</td><td>${ok?'<span class="pill2 ok">Unlocked</span>':`<span class="pill2 no">${l-lv[s]} to go</span>`}</td></tr>`;
+  }).join("") || `<tr><td colspan="4" class="note">Everything here is unlocked.</td></tr>`;
 }
 
 function load(){ try{ return JSON.parse(localStorage.getItem("osrsHub")||localStorage.getItem("osrsCalc")||"{}"); }catch(e){ return {}; } }
@@ -1629,6 +1681,7 @@ function save(){ try{ const s={}; document.querySelectorAll("input,select").forE
 function buildStatic(){
   $("bLog").innerHTML = LOGS.map((l,i)=>`<option value="${i}" ${l.name==="Yew"?"selected":""}>${l.name} (${l.hunter} Hunter, ${l.lvl} Crafting)</option>`).join("");
   buildRuns();
+  buildLevels();
   $("dailyBody").innerHTML = DAILY.map(d=>`<tr><td>${d.name}</td><td class="n"><input type="number" id="dq_${d.key}" value="${d.qty}" min="0" aria-label="${d.name} quantity"></td><td class="n" id="dc_${d.key}"></td><td class="n" id="dv_${d.key}"></td><td class="n" id="dp_${d.key}"></td><td id="dx_${d.key}"></td></tr>`).join("");
   const s = load();
   Object.entries(s).forEach(([id,v])=>{ const el=$(id); if(!el) return; if(el.type==="checkbox") el.checked=v; else el.value=v; });
@@ -1655,7 +1708,7 @@ function render(){
   const log = LOGS[+$("bLog").value]; const nests = +$("bNests").value||0;
   const lp = price(log.id), cw = price(8792), np = sell(price(5075));
   const items = [
-    {n:`${log.name} logs`, q:4, p:lp, v: lp==null?null:-4*lp},
+    {n: log.name==="Regular" ? "Logs" : `${log.name} logs`, q:4, p:lp, v: lp==null?null:-4*lp},
     {n: $("bReuse").checked ? "Clockwork (reused)" : "Clockwork", q: $("bReuse").checked ? 0 : 4, p:cw, v: $("bReuse").checked ? 0 : (cw==null?null:-4*cw)},
     {n:"Bird nests (empty)", q:nests, p:price(5075), v: np==null?null:nests*np},
   ];
@@ -1702,15 +1755,34 @@ function render(){
   $("srcText").textContent = mode==="wiki" ? "Live from OSRS Wiki" : mode==="store" ? "Stored prices" : "Snapshot prices";
   $("srcPill").className = "pill " + ((mode==="wiki" && ago<5) || (mode==="store" && ago<720) ? "live" : "stale");
   $("updText").textContent = mode==="wiki" ? `Updated ${agoTxt}, refreshes every 90 s` : `Prices updated ${agoTxt}${wikiBlocked ? " · open the downloaded file for 90-second live prices" : ""}`;
-  renderPlan();
 }
 
-buildStatic(); render();
-document.addEventListener("input", ()=>{ render(); save(); });
-document.addEventListener("change", ()=>{ render(); save(); });
-setInterval(render, 60000);
+buildStatic(); render(); renderPlan(); renderLevels();
+document.addEventListener("input", ()=>{ render(); renderPlan(); renderLevels(); save(); });
+document.addEventListener("change", e=>{ tickTime(e.target); render(); renderPlan(); renderLevels(); save(); });
+setInterval(()=>{ render(); clearOldTicks(); }, 60000);
+// Daily ticks clear at the 00:00 UTC reset; weekly ticks clear 7 days after you tick them
+function tickTimes(){ try{ return JSON.parse(localStorage.getItem("osrsTicks")||"{}"); }catch(e){ return {}; } }
+function saveTicks(t){ try{ localStorage.setItem("osrsTicks", JSON.stringify(t)); }catch(e){} }
+function tickTime(el){
+  if(!el || !/^cb_(daily|weekly)_/.test(el.id||"")) return;
+  const t = tickTimes(); if(el.checked) t[el.id] = Date.now(); else delete t[el.id]; saveTicks(t);
+}
+function clearOldTicks(){
+  const t = tickTimes(), now = Date.now(), d = new Date(now);
+  const lastReset = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  let changed = false;
+  document.querySelectorAll('input[id^="cb_daily_"], input[id^="cb_weekly_"]').forEach(cb=>{
+    if(!cb.checked){ if(t[cb.id]){ delete t[cb.id]; changed = true; } return; }
+    if(!t[cb.id]){ t[cb.id] = now; changed = true; return; }
+    const expired = cb.id.startsWith("cb_daily_") ? t[cb.id] < lastReset : now - t[cb.id] >= 7*86400000;
+    if(expired){ cb.checked = false; delete t[cb.id]; changed = true; }
+  });
+  if(changed){ saveTicks(t); save(); }
+}
+clearOldTicks();
 // Keep the two clockwork boxes in sync
-["bReuse","pl_birdReuse"].forEach((id,i,arr)=>$(id).addEventListener("change", e=>{ $(arr[1-i]).checked = e.target.checked; render(); save(); }));
+["bReuse","pl_birdReuse"].forEach((id,i,arr)=>$(id).addEventListener("change", e=>{ $(arr[1-i]).checked = e.target.checked; render(); renderPlan(); save(); }));
 
 // Live prices straight from the OSRS Wiki API every 90 s (works when the file is opened directly in a browser)
 async function fetchWiki(){
