@@ -196,6 +196,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     <div class="controls">
       <label class="f">Birdhouse type<select id="bLog"></select></label>
       <label class="f">Nests per run<input type="number" id="bNests" value="4" step="0.5" min="0"></label>
+      <label class="f" style="display:flex;align-items:center;gap:6px;align-self:end"><input type="checkbox" id="bReuse" checked> Reuse clockwork from the old birdhouses</label>
     </div>
     <div class="tbl"><table>
       <thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Value</th></tr></thead>
@@ -1366,7 +1367,7 @@ function buildRuns(){
     if(r.key==="tree") opts += `<label>Tree ${sel("pl_treeType",TREE_TYPES,"yew")}</label><label><input type="checkbox" id="pl_treePay" checked> Pay gardeners to protect</label><label><input type="checkbox" id="pl_stump"> Pay 200 gp to clear stumps</label>`;
     if(r.key==="fruit") opts += `<label>Fruit tree ${sel("pl_fruitType",FRUIT_TYPES,"palm")}</label><label><input type="checkbox" id="pl_fruitPay" checked> Pay gardeners to protect</label>`;
     if(r.key==="hard") opts += `<label>Hardwood ${sel("pl_hardType",HARD_TYPES,"teak")}</label><label>Patches <input type="number" id="pl_hardN" value="3" min="1" max="3"></label><label><input type="checkbox" id="pl_hardPay" checked> Pay gardeners to protect</label>`;
-    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><span class="note">Type follows the Birdhouse section below</span>`;
+    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><label><input type="checkbox" id="pl_birdReuse" checked> Reuse clockwork from the old birdhouses</label><span class="note">Type follows the Birdhouse section below</span>`;
     if(r.key==="daily") opts += `<span class="note">Zaff's coins and noted flax use the quantities in Daily collects below</span>`;
     opts += r.patches.map((p,i)=>`<label><input type="checkbox" id="pl_${r.key}_p${i}" ${r.defaultOn.includes(i)?"checked":""}> ${p[0]}</label>`).join("");
     return `<div class="run" id="run_${r.key}"><label><input type="checkbox" id="pl_${r.key}"> ${r.name}</label><div class="opts">${opts}</div></div>`;
@@ -1435,7 +1436,7 @@ const ITEM_REQ = {
   "Ultracompost":"Supercompost + 2 volcanic ash",
   "Seed dibber":"Farming tool", "Spade":"Farming tool", "Rake":"Farming tool",
   "Chisel":"Needed to build birdhouses", "Hammer":"Needed to build birdhouses",
-  "Clockwork":"Birdhouse part · made from a steel bar at a clockmaker's bench",
+  "Clockwork":"Birdhouse part · made from a steel bar at a clockmaker's bench · only needed for your first run if you reuse it",
   "Hop or grain seeds":"Birdhouse bait · 10 per birdhouse",
   "Rune pouch":"Bought for 750 Slayer reward points",
   "Staff of air":"No requirement · replaces air runes",
@@ -1530,7 +1531,7 @@ function renderPlan(){
     const log = LOGS[+$("bLog").value];
     fossil();
     if(on("birdBuilt")) add(`${log.name==="Regular"?"":log.name+" "}Bird house`.trim(), 4, false);
-    else { add(`${log.name} logs`, 4, false); add("Clockwork", 4, false); add("Chisel",1,false); add("Hammer",1,false); }
+    else { add(`${log.name} logs`, 4, false); if(!on("birdReuse")) add("Clockwork", 4, false); add("Chisel",1,false); add("Hammer",1,false); }
     add("Hop or grain seeds", 40, true);
   }
   if(on("daily")){
@@ -1633,7 +1634,7 @@ function render(){
   const lp = price(log.id), cw = price(8792), np = sell(price(5075));
   const items = [
     {n:`${log.name} logs`, q:4, p:lp, v: lp==null?null:-4*lp},
-    {n:"Clockwork", q:4, p:cw, v: cw==null?null:-4*cw},
+    {n: $("bReuse").checked ? "Clockwork (reused)" : "Clockwork", q: $("bReuse").checked ? 0 : 4, p:cw, v: $("bReuse").checked ? 0 : (cw==null?null:-4*cw)},
     {n:"Bird nests (empty)", q:nests, p:price(5075), v: np==null?null:nests*np},
   ];
   $("birdBody").innerHTML = items.map(i=>`<tr><td>${i.n}</td><td class="n">${i.q}</td><td class="n">${fmt(i.p)}</td><td class="n">${money(i.v)}</td></tr>`).join("");
@@ -1686,6 +1687,8 @@ buildStatic(); render();
 document.addEventListener("input", ()=>{ render(); save(); });
 document.addEventListener("change", ()=>{ render(); save(); });
 setInterval(render, 60000);
+// Keep the two clockwork boxes in sync
+["bReuse","pl_birdReuse"].forEach((id,i,arr)=>$(id).addEventListener("change", e=>{ $(arr[1-i]).checked = e.target.checked; render(); save(); }));
 
 // Live prices straight from the OSRS Wiki API every 90 s (works when the file is opened directly in a browser)
 async function fetchWiki(){
