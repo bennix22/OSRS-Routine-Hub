@@ -1440,7 +1440,7 @@ const ITEM_REQ = {
   "Hop or grain seeds":"Birdhouse bait · 10 per birdhouse",
   "Rune pouch":"Bought for 750 Slayer reward points · holds 3 rune types",
   "Divine rune pouch":"Upgrade a rune pouch with a divine rune pouch scroll (from Chambers of Xeric or Theatre of Blood) · holds 4 rune types",
-  "Staff of air":"No requirement · replaces air runes",
+  "Staff of air":"No requirement · replaces air runes while wielded",
   "Fishbowl helmet":"Bone Voyage · needed underwater on Fossil Island",
   "Diving apparatus":"Bone Voyage · needed underwater on Fossil Island",
   "Flax (noted)":"Kandarin Diary for the flax keeper in Seers' Village",
@@ -1553,8 +1553,8 @@ function renderPlan(){
   const cap = pouchKind==="divine" ? 4 : pouchKind==="pouch" ? 3 : 0;
   const pouchName = pouchKind==="divine" ? "Divine rune pouch" : "Rune pouch";
   const dramen = wear.has("Dramen staff");
-  const wantAirStaff = cap>0 && on("airstaff") && !dramen;
-  let staffNote = (cap>0 && on("airstaff") && dramen) ? " The Dramen staff takes your weapon slot for fairy rings, so air runes go in the pouch instead of using a staff of air." : "";
+  const wantAirStaff = cap>0 && on("airstaff");
+  let staffNote = "";
   const spellKeys = Object.keys(casts);
   const typesOf = (keys, noAir) => { const t = new Set(); keys.forEach(k=>Object.keys(SPELLS[k].runes).forEach(r=>{ if(!(noAir && r==="Air")) t.add(r); })); return t; };
   // Pick the set of spells that covers the most casts within the pouch's rune-type limit
@@ -1575,7 +1575,11 @@ function renderPlan(){
     if(inPouch.has(k)) Object.entries(sp.runes).forEach(([r,q])=>{ runeTotals[r]=(runeTotals[r]||0)+q*c; });
     else add(sp.tab, c, true);
   });
-  if(wantAirStaff && runeTotals.Air){ delete runeTotals.Air; wear.add("Staff of air"); }
+  if(wantAirStaff && runeTotals.Air){
+    delete runeTotals.Air;
+    if(dramen){ add("Staff of air", 1, false); staffNote = " Wield the Dramen staff for fairy rings and swap to the staff of air from your inventory before casting."; }
+    else wear.add("Staff of air");
+  }
   // Magic secateurs work from the inventory; they go there whenever a staff is wielded
   if(wear.has("Magic secateurs") && (dramen || wear.has("Staff of air"))){
     wear.delete("Magic secateurs"); add("Magic secateurs", 1, false);
