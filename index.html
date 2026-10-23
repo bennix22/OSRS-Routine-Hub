@@ -160,7 +160,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
         <div class="slots" id="slots"></div>
         <div><div class="k2">Bring</div><ul class="invlist" id="invList"></ul></div>
         <div id="routeWrap" hidden><div class="k2">Route</div><ul class="invlist" id="routeList"></ul></div>
-        <div id="pouchWrap" hidden><div class="k2">Rune pouch</div><ul class="invlist" id="pouchList"></ul><p class="note" id="pouchTip"></p></div>
+        <div id="pouchWrap" hidden><div class="k2" id="pouchHead">Rune pouch</div><ul class="invlist" id="pouchList"></ul><p class="note" id="pouchTip"></p></div>
         <div id="wearWrap"><div class="k2">Wear</div><ul class="invlist" id="wearList"></ul></div>
         <button class="btn" id="copyBtn" type="button">Copy list</button>
         <p class="note">Bank everything else. Leprechauns at each patch note your produce, and gardeners accept noted payment items.</p>
@@ -1371,10 +1371,10 @@ function buildRuns(){
     if(r.key==="daily") opts += `<span class="note">Zaff's coins and noted flax use the quantities in Daily collects below</span>`;
     opts += r.patches.map((p,i)=>`<label><input type="checkbox" id="pl_${r.key}_p${i}" ${r.defaultOn.includes(i)?"checked":""}> ${p[0]}</label>`).join("");
     return `<div class="run" id="run_${r.key}"><label><input type="checkbox" id="pl_${r.key}"> ${r.name}</label><div class="opts">${opts}</div></div>`;
-  }).join("") + `<div class="run on"><label>Teleports you have <span class="note" style="font-weight:400">· hover * for requirements</span></label><div class="opts" style="display:flex">${Object.entries(TELES).map(([k,t])=>`<label><input type="checkbox" id="tp_${k}" ${t.on?"checked":""}> ${t.label}</label><span class="star" tabindex="0" role="note" aria-label="Requirements: ${t.req.replace(/"/g,"&quot;")}" data-tip="${t.req.replace(/"/g,"&quot;")}">*</span>`).join("")}</div></div><div class="run on"><label>General</label><div class="opts" style="display:flex">
+  }).join("") + `<div class="run on"><label>General</label><div class="opts" style="display:flex">
       <label>Compost <select id="pl_comp"><option value="bucket">Bottomless compost bucket</option><option value="ultra">Ultracompost (1 per patch)</option><option value="none">None</option></select></label>
       <label><input type="checkbox" id="pl_secateurs" checked> Magic secateurs</label>
-      <label><input type="checkbox" id="pl_rake" checked> Bring a rake</label>\n      <label><input type="checkbox" id="pl_pouch" checked> Rune pouch</label>\n      <label><input type="checkbox" id="pl_airstaff"> Wield a staff of air</label></div></div>`;
+      <label><input type="checkbox" id="pl_rake" checked> Bring a rake</label>\n      <label>Teleport runes <select id="pl_pouchType"><option value="pouch">Rune pouch (3 types)</option><option value="divine">Divine rune pouch (4 types)</option><option value="none">No pouch: use tablets</option></select></label>\n      <label><input type="checkbox" id="pl_airstaff"> Wield a staff of air</label></div></div><div class="run on"><label>Teleports you have <span class="note" style="font-weight:400">· hover * for requirements</span></label><div class="opts" style="display:flex">${Object.entries(TELES).map(([k,t])=>`<label><input type="checkbox" id="tp_${k}" ${t.on?"checked":""}> ${t.label}</label><span class="star" tabindex="0" role="note" aria-label="Requirements: ${t.req.replace(/"/g,"&quot;")}" data-tip="${t.req.replace(/"/g,"&quot;")}">*</span>`).join("")}</div></div>`;
 }
 
 // Item icons from the OSRS Wiki (load when the page can reach the wiki; otherwise the text label stays)
@@ -1438,7 +1438,8 @@ const ITEM_REQ = {
   "Chisel":"Needed to build birdhouses", "Hammer":"Needed to build birdhouses",
   "Clockwork":"Birdhouse part · made from a steel bar at a clockmaker's bench · only needed for your first run if you reuse it",
   "Hop or grain seeds":"Birdhouse bait · 10 per birdhouse",
-  "Rune pouch":"Bought for 750 Slayer reward points",
+  "Rune pouch":"Bought for 750 Slayer reward points · holds 3 rune types",
+  "Divine rune pouch":"Upgrade a rune pouch with a divine rune pouch scroll (from Chambers of Xeric or Theatre of Blood) · holds 4 rune types",
   "Staff of air":"No requirement · replaces air runes",
   "Fishbowl helmet":"Bone Voyage · needed underwater on Fossil Island",
   "Diving apparatus":"Bone Voyage · needed underwater on Fossil Island",
@@ -1547,33 +1548,50 @@ function renderPlan(){
     if(comp==="ultra" && patchCount) add("Ultracompost", patchCount, false);
   }
 
-  // Teleports: rune pouch or tablets
+  // Teleports: fill the rune pouch with the spells that fit, use tablets for the rest
+  const pouchKind = $("pl_pouchType").value;            // none | pouch | divine
+  const cap = pouchKind==="divine" ? 4 : pouchKind==="pouch" ? 3 : 0;
+  const pouchName = pouchKind==="divine" ? "Divine rune pouch" : "Rune pouch";
+  const dramen = wear.has("Dramen staff");
+  const wantAirStaff = cap>0 && on("airstaff") && !dramen;
+  let staffNote = (cap>0 && on("airstaff") && dramen) ? " The Dramen staff takes your weapon slot for fairy rings, so air runes go in the pouch instead of using a staff of air." : "";
+  const spellKeys = Object.keys(casts);
+  const typesOf = (keys, noAir) => { const t = new Set(); keys.forEach(k=>Object.keys(SPELLS[k].runes).forEach(r=>{ if(!(noAir && r==="Air")) t.add(r); })); return t; };
+  // Pick the set of spells that covers the most casts within the pouch's rune-type limit
+  let best = {keys:[], covered:0, types:0};
+  if(cap>0){
+    for(let mask=1; mask < (1<<spellKeys.length); mask++){
+      const keys = spellKeys.filter((_,i)=>mask & (1<<i));
+      const nt = typesOf(keys, wantAirStaff).size;
+      if(nt > cap) continue;
+      const covered = keys.reduce((a,k)=>a+casts[k],0);
+      if(covered > best.covered || (covered===best.covered && nt < best.types)) best = {keys, covered, types:nt};
+    }
+  }
+  const inPouch = new Set(best.keys);
   const runeTotals = {};
-  const usePouch = on("pouch");
-  Object.entries(casts).forEach(([k,c])=>{
-    const sp = SPELLS[k];
-    if(usePouch) Object.entries(sp.runes).forEach(([r,q])=>{ runeTotals[r]=(runeTotals[r]||0)+q*c; });
+  spellKeys.forEach(k=>{
+    const c = casts[k], sp = SPELLS[k];
+    if(inPouch.has(k)) Object.entries(sp.runes).forEach(([r,q])=>{ runeTotals[r]=(runeTotals[r]||0)+q*c; });
     else add(sp.tab, c, true);
   });
-  const dramen = wear.has("Dramen staff");
-  let staffNote = "";
-  if(usePouch && on("airstaff") && runeTotals.Air){
-    if(dramen) staffNote = " The Dramen staff takes your weapon slot for fairy rings, so bring air runes instead of the staff of air.";
-    else { delete runeTotals.Air; wear.add("Staff of air"); }
-  }
+  if(wantAirStaff && runeTotals.Air){ delete runeTotals.Air; wear.add("Staff of air"); }
   // Magic secateurs work from the inventory; they go there whenever a staff is wielded
   if(wear.has("Magic secateurs") && (dramen || wear.has("Staff of air"))){
     wear.delete("Magic secateurs"); add("Magic secateurs", 1, false);
   }
+  const usePouch = cap>0;
   const runeTypes = Object.keys(runeTotals);
-  if(usePouch && runeTypes.length) addOnce("Rune pouch");
+  if(usePouch && runeTypes.length) addOnce(pouchName);
   $("pouchWrap").hidden = !(usePouch && runeTypes.length);
+  $("pouchHead").textContent = pouchName + (usePouch ? ` (${runeTypes.length} / ${cap} rune types)` : "");
   if(usePouch && runeTypes.length){
-    const spellList = Object.entries(casts).map(([k,c])=>`${SPELLS[k].name}${c>1?" ×"+c:""}`).join(", ");
+    const listSp = keys => keys.map(k=>`${SPELLS[k].name}${casts[k]>1?" ×"+casts[k]:""}`).join(", ");
     $("pouchList").innerHTML = runeTypes.map(r=>`<li title="${esc(tipText(r+' rune', runeTotals[r]))}"><span>${iconImg(r+" rune", runeTotals[r])}${r} rune</span><span>× ${runeTotals[r]}</span></li>`).join("");
-    let tip = `For: ${spellList}.`;
-    if(runeTypes.length>4) tip += " That's more than 4 rune types, so it won't fit even a divine rune pouch: wield a staff of air or bring tablets for some patches.";
-    else if(runeTypes.length===4) tip += " 4 rune types needs a divine rune pouch. With a regular pouch, wield a staff of air.";
+    let tip = `Runes for: ${listSp(best.keys)}.`;
+    const left = spellKeys.filter(k=>!inPouch.has(k));
+    if(left.length) tip += ` Not enough room for ${listSp(left)}, so tablets were added for ${left.length>1?"those":"that"}.`;
+    if(left.length && pouchKind==="pouch") tip += " A divine rune pouch (4 rune types) would fit more.";
     $("pouchTip").textContent = tip + staffNote;
   }
 
