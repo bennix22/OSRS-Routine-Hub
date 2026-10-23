@@ -59,11 +59,9 @@ td input[type=number]{width:80px;padding:4px 6px}
 .plan{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
 @media (min-width:1300px){
   .plan{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:24px}
-  .inv{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
-  .inv > :nth-child(1){grid-column:1 / -1}
-  .inv > #slots{grid-column:1;grid-row:2 / span 6}
-  .inv > :not(:nth-child(1)):not(#slots){grid-column:2}
-  .slots{max-width:440px}
+  .plan .inv{grid-template-columns:minmax(0,400px) minmax(0,1fr);column-gap:36px;align-items:start}
+  .inv .invL .slots, .inv .invL > div:first-child{max-width:none}
+  .invL{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px)}
 }
 @media (max-width:760px){.plan{grid-template-columns:minmax(0,1fr)}}
 .runs{display:grid;gap:10px;align-content:start;min-width:0}
@@ -77,10 +75,12 @@ td input[type=number]{width:80px;padding:4px 6px}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .inv{display:grid;gap:12px;align-content:start;min-width:0}
 .inv > *{min-width:0}
+.invL,.invR{display:grid;gap:12px;align-content:start;min-width:0}
 .meter{height:8px;border-radius:999px;background:var(--chip);overflow:hidden}
 .meter > i{display:block;height:100%;background:var(--accent);width:0}
 .meter.over > i{background:var(--loss)}
 .slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;max-width:320px}
+.invL > div:first-child{max-width:320px}
 .slot{aspect-ratio:1;max-width:100%;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:.66rem;line-height:1.15;padding:3px;overflow:hidden;color:var(--fg);display:flex;flex-direction:column;justify-content:space-between;position:relative}
 .slot img.ic{position:absolute;inset:0;margin:auto;max-width:72%;max-height:72%;image-rendering:pixelated;object-fit:contain}
 .slot b{position:relative;z-index:1}
@@ -178,17 +178,21 @@ tr.locked td:not(:last-child){color:var(--muted)}
     <div class="plan">
       <div class="runs" id="runs"></div>
       <div class="inv">
+        <div class="invL">
         <div>
           <div class="head"><span class="k2">Inventory</span><span class="note" id="slotTxt"></span></div>
           <div class="meter" id="meter"><i id="meterBar"></i></div>
         </div>
         <div class="slots" id="slots"></div>
+        </div>
+        <div class="invR">
         <div><div class="k2">Bring</div><ul class="invlist" id="invList"></ul></div>
         <div id="routeWrap" hidden><div class="k2">Route</div><ul class="invlist" id="routeList"></ul></div>
         <div id="pouchWrap" hidden><div class="k2" id="pouchHead">Rune pouch</div><ul class="invlist" id="pouchList"></ul><p class="note" id="pouchTip"></p></div>
         <div id="wearWrap"><div class="k2">Wear</div><ul class="invlist" id="wearList"></ul><p class="note" id="swapNote" hidden></p></div>
         <button class="btn" id="copyBtn" type="button">Copy list</button>
         <p class="note">Bank everything else. Leprechauns at each patch note your produce, and gardeners accept noted payment items.</p>
+      </div>
       </div>
     </div>
   </section>
@@ -1345,17 +1349,44 @@ const SWAP_NOTE = {
 };
 const TREE_TYPES = {oak:["Oak sapling","Basket of tomatoes",1],willow:["Willow sapling","Basket of apples",1],maple:["Maple sapling","Basket of oranges",1],yew:["Yew sapling","Cactus spine",10],magic:["Magic sapling","Coconut",25]};
 const FRUIT_TYPES = {apple:["Apple sapling","Sweetcorn",9],papaya:["Papaya sapling","Pineapple",10],palm:["Palm sapling","Papaya fruit",15],dragonfruit:["Dragonfruit sapling","Coconut",15]};
+const TREE_LV = {oak:15, willow:30, maple:45, yew:60, magic:75};
+const FRUIT_LV = {apple:27, papaya:57, palm:68, dragonfruit:81};
+const HARD_LV = {teak:35, mahogany:55};
+// Your levels from the Unlocks tab (1 = not entered yet)
+const myLv = k => Math.max(1, Math.min(99, Math.round(+($("lv_"+k)?.value)) || 1));
+// Pick the best type your level allows; falls back to a sensible default (with a note) when the level isn't set or is too low
+function autoPick(selId, noteId, levels, skill, fallback){
+  const v = $(selId).value, note = $(noteId);
+  if(v !== "auto"){ note.textContent = ""; return v; }
+  const lv = myLv(skill);
+  const ok = Object.keys(levels).filter(k=>levels[k] <= lv);
+  if(lv <= 1){ note.textContent = `Enter your ${skill} level on the Unlocks tab to auto-pick. Using ${fallback[0].toUpperCase()+fallback.slice(1)} for now.`; return fallback; }
+  if(!ok.length){ note.textContent = `Needs ${Math.min(...Object.values(levels))} ${skill} (you have ${lv}). Showing the lowest tier.`; return Object.keys(levels)[0]; }
+  const pick = ok[ok.length-1]; note.textContent = `Auto: ${pick[0].toUpperCase()+pick.slice(1)} for ${skill} ${lv}`; return pick;
+}
+function autoBird(){
+  const v = $("pl_birdType").value, note = $("auto_bird");
+  if(v !== "auto"){ note.textContent = ""; return LOGS[+v]; }
+  const h = myLv("Hunter"), c = myLv("Crafting");
+  if(h <= 1 && c <= 1){ const l = LOGS[+$("bLog").value]; note.textContent = `Enter your Hunter and Crafting levels on the Unlocks tab to auto-pick. Using ${l.name} (Profits tab choice) for now.`; return l; }
+  const ok = LOGS.filter(l=>l.hunter <= h && l.lvl <= c);
+  if(!ok.length){ note.textContent = `Birdhouses need 5 Hunter and 5 Crafting (you have ${h} / ${c}).`; return LOGS[0]; }
+  const l = ok[ok.length-1];
+  const nxt = LOGS[LOGS.indexOf(l)+1];
+  note.textContent = `Auto: ${l.name} for Hunter ${h}, Crafting ${c}` + (nxt ? ` · ${nxt.name} at ${nxt.hunter} Hunter / ${nxt.lvl} Crafting` : "");
+  return l;
+}
 const HARD_TYPES = {teak:["Teak sapling","Limpwurt root",15],mahogany:["Mahogany sapling","Yanillian hops",25]};
 
 function buildRuns(){
-  const sel = (id, obj, def) => `<select id="${id}">${Object.keys(obj).map(k=>`<option value="${k}" ${k===def?"selected":""}>${k[0].toUpperCase()+k.slice(1)}</option>`).join("")}</select>`;
+  const sel = (id, obj, lv) => `<select id="${id}"><option value="auto" selected>Auto (best for my level)</option>${Object.keys(obj).map(k=>`<option value="${k}">${k[0].toUpperCase()+k.slice(1)} (${lv[k]} Farming)</option>`).join("")}</select>`;
   $("runs").innerHTML = RUNS.map(r=>{
     let opts = "";
     if(r.key==="herb") opts += `<label>Seed <select id="pl_herbSeed">${HERBS.map(h=>`<option value="${h.name}">${h.name}</option>`).join("")}</select></label><span class="note">Gardeners can't protect herb patches. Use ultracompost and the disease-free patches (Hosidius, Troll Stronghold, Weiss).</span>`;
-    if(r.key==="tree") opts += `<label>Tree ${sel("pl_treeType",TREE_TYPES,"yew")}</label><label><input type="checkbox" id="pl_treePay" checked> Pay gardeners to protect</label><label><input type="checkbox" id="pl_stump"> Pay 200 gp to clear stumps</label>`;
-    if(r.key==="fruit") opts += `<label>Fruit tree ${sel("pl_fruitType",FRUIT_TYPES,"palm")}</label><label><input type="checkbox" id="pl_fruitPay" checked> Pay gardeners to protect</label>`;
-    if(r.key==="hard") opts += `<label>Hardwood ${sel("pl_hardType",HARD_TYPES,"teak")}</label><label>Patches <input type="number" id="pl_hardN" value="3" min="1" max="3"></label><label><input type="checkbox" id="pl_hardPay" checked> Pay gardeners to protect</label>`;
-    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><label><input type="checkbox" id="pl_birdReuse" checked> Reuse clockwork from the old birdhouses</label><span class="note">Type follows the Birdhouse section below</span>`;
+    if(r.key==="tree") opts += `<label>Tree ${sel("pl_treeType",TREE_TYPES,TREE_LV)}</label><span class="note" id="auto_tree"></span><label><input type="checkbox" id="pl_treePay" checked> Pay gardeners to protect</label><label><input type="checkbox" id="pl_stump"> Pay 200 gp to clear stumps</label>`;
+    if(r.key==="fruit") opts += `<label>Fruit tree ${sel("pl_fruitType",FRUIT_TYPES,FRUIT_LV)}</label><span class="note" id="auto_fruit"></span><label><input type="checkbox" id="pl_fruitPay" checked> Pay gardeners to protect</label>`;
+    if(r.key==="hard") opts += `<label>Hardwood ${sel("pl_hardType",HARD_TYPES,HARD_LV)}</label><span class="note" id="auto_hard"></span><label>Patches <input type="number" id="pl_hardN" value="3" min="1" max="3"></label><label><input type="checkbox" id="pl_hardPay" checked> Pay gardeners to protect</label>`;
+    if(r.key==="bird") opts += `<label><input type="checkbox" id="pl_birdBuilt"> Bring pre-built birdhouses</label><label><input type="checkbox" id="pl_birdReuse" checked> Reuse clockwork from the old birdhouses</label><label>Birdhouse <select id="pl_birdType"><option value="auto" selected>Auto (best for my levels)</option>${LOGS.map((l,i)=>`<option value="${i}">${l.name} (${l.hunter} Hunter, ${l.lvl} Crafting)</option>`).join("")}</select></label><span class="note" id="auto_bird"></span>`;
     if(r.key==="daily") opts += `<span class="note">Zaff's coins and noted flax use the quantities in Daily collects below</span>`;
     opts += r.patches.map((p,i)=>`<label><input type="checkbox" id="pl_${r.key}_p${i}" ${r.defaultOn.includes(i)?"checked":""}> ${p[0]}</label>`).join("");
     return `<div class="run" id="run_${r.key}"><label><input type="checkbox" id="pl_${r.key}"> ${r.name}</label><div class="opts">${opts}</div></div>`;
@@ -1510,20 +1541,20 @@ function renderPlan(){
   }
   if(on("tree")){
     const n = runPatches(RUNS[1]);
-    const [sap, pay, pq] = TREE_TYPES[$("pl_treeType").value];
+    const [sap, pay, pq] = TREE_TYPES[autoPick("pl_treeType","auto_tree",TREE_LV,"Farming","yew")];
     add(sap, n, false); if(on("treePay")) add(`${pay} (noted)`, n*pq, true);
     if(on("stump")) add("Coins", 200*n, true);
     patchCount += n; if(n) farming = true;
   }
   if(on("fruit")){
     const n = runPatches(RUNS[2]);
-    const [sap, pay, pq] = FRUIT_TYPES[$("pl_fruitType").value];
+    const [sap, pay, pq] = FRUIT_TYPES[autoPick("pl_fruitType","auto_fruit",FRUIT_LV,"Farming","palm")];
     add(sap, n, false); if(on("fruitPay")) add(`${pay} (noted)`, n*pq, true);
     patchCount += n; if(n) farming = true;
   }
   if(on("hard")){
     const n = Math.max(1, Math.min(3, Math.round(+$("pl_hardN").value)||3));
-    const [sap, pay, pq] = HARD_TYPES[$("pl_hardType").value];
+    const [sap, pay, pq] = HARD_TYPES[autoPick("pl_hardType","auto_hard",HARD_LV,"Farming","teak")];
     add(sap, n, false); if(on("hardPay")) add(`${pay} (noted)`, n*pq, true);
     visit("fossil", "hardwood"); patchCount += n; farming = true;
   }
@@ -1532,7 +1563,7 @@ function renderPlan(){
     wear.add("Fishbowl helmet"); wear.add("Diving apparatus");
   }
   if(on("bird")){
-    const log = LOGS[+$("bLog").value];
+    const log = autoBird();
     visit("fossil", "birdhouses");
     if(on("birdBuilt")) add(log.name==="Regular" ? "Bird house" : `${log.name} birdhouse`, 4, false);
     else { add(log.name==="Regular" ? "Logs" : `${log.name} logs`, 4, false); if(!on("birdReuse")) add("Clockwork", 4, false); add("Chisel",1,false); add("Hammer",1,false); }
