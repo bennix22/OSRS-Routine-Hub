@@ -158,6 +158,7 @@ button.badge:hover{filter:brightness(1.08);text-decoration:underline}
 .chips .badge{margin-left:0}
 tr.grp td{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:14px}
 td .lockn{font-size:.75rem;color:var(--muted);margin-left:6px}
+.rn{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-right:8px;border-radius:50%;background:var(--chip);color:var(--muted);font-family:var(--mono);font-size:.72rem;flex:none}
 </style>
 
 <div class="wrap">
@@ -617,6 +618,10 @@ td .lockn{font-size:.75rem;color:var(--muted);margin-left:6px}
 <tr>
 <td>Farming Guild</td>
 <td>85 Farming</td>
+</tr>
+<tr>
+<td>Kastori (Varlamore)</td>
+<td>None listed; quetzal whistle once the Kastori landing site is built, or Achilka's boat</td>
 </tr>
 </tbody>
 </table></div>
@@ -1347,11 +1352,13 @@ const SPELLS = {
   varrock:{name:"Varrock Teleport", tab:"Varrock teleport tablet", runes:{Air:3, Fire:1, Law:1}},
   falador:{name:"Falador Teleport", tab:"Falador teleport tablet", runes:{Air:3, Water:1, Law:1}},
   ardougne:{name:"Ardougne Teleport", tab:"Ardougne teleport tablet", runes:{Water:2, Law:2}},
+  trollheim:{name:"Trollheim Teleport", tab:"Trollheim teleport tablet", runes:{Fire:2, Law:2}},
 };
 // Teleports the player can tick; each stop uses the first one ticked, in its own priority order
 const TELES = {
   std:{req:"Normal spellbook. Magic 25 Varrock, 31 Lumbridge, 37 Falador, 45 Camelot. Runes: law + air, plus fire (Varrock), earth (Lumbridge) or water (Falador).", label:"Standard teleports (Lumbridge, Varrock, Falador, Camelot)", on:true},
   ardyspell:{req:"51 Magic and the Plague City quest. Costs 2 law + 2 water runes.", label:"Ardougne Teleport (Plague City)", on:false},
+  trollspell:{req:"61 Magic and the Eadgar's Ruse quest. Costs 2 law + 2 fire runes (or a Trollheim teleport tablet). Lands on Trollheim; walk down to the Stronghold entrance, then up to the roof herb patch.", label:"Trollheim Teleport (Eadgar's Ruse)", on:true},
   explorers:{req:"Lumbridge & Draynor Medium Diary (Explorer's ring 2): 3 cabbage-port teleports a day, to the field next to the Falador farm. Ring 3+ (Hard Diary) makes them unlimited.", label:"Explorer's ring 2+ (cabbage patch)", short:"Explorer's ring cabbage-port", item:"Explorer's ring", worn:true, on:false},
   ardycloak:{req:"Ardougne Medium Diary: Ardougne cloak 2 or better teleports to the Ardougne farm herb patch.", label:"Ardougne cloak 2+ (farm teleport)", short:"Ardougne cloak farm teleport", item:"Ardougne cloak", worn:true, on:false},
   xerics:{req:"Dropped by lizardmen in Kourend. Charge it with lizardman fangs.", label:"Xeric's talisman", item:"Xeric's talisman", on:false},
@@ -1374,7 +1381,7 @@ const STOPS = {
   ardougne_farm:{name:"Ardougne farm", tele:["ardycloak","ardyspell:ardougne","skills"], via:{skills:"Fishing Guild"}},
   hosidius:{name:"Hosidius", tele:["xerics","skills","fairy"], fairy:"AKR", via:{skills:"Woodcutting Guild"}},
   phasmatys:{name:"Port Phasmatys", tele:["ecto","fairy"], fairy:"ALQ"},
-  troll:{name:"Troll Stronghold", tele:["stony"]},
+  troll:{name:"Troll Stronghold", tele:["stony","trollspell:trollheim"]},
   weiss:{name:"Weiss", tele:["icy","fairy"], fairy:"DKS"},
   guild:{name:"Farming Guild", tele:["skills","fairy"], fairy:"CIR", via:{skills:"Farming Guild"}},
   harmony:{name:"Harmony Island", tele:["harmony"]},
@@ -1387,7 +1394,17 @@ const STOPS = {
   tgv:{name:"Tree Gnome Village", tele:["spirit"]},
   brimhaven:{name:"Brimhaven", tele:["ardyspell:ardougne"], coins:30, extra:"boat from Ardougne (30 gp)"},
   lletya:{name:"Lletya", tele:["crystal"]},
+  kastori:{name:"Kastori (Varlamore)", tele:["quetzal"], via:{quetzal:"Kastori landing site, once built"}},
   fossil:{name:"Fossil Island", tele:["digsite"], fallback:"Boat from the Varrock Museum"},
+};
+// Travel order for the route: south-east first, then west along the coast, north to the gnomes, then the far-flung patches
+const STOP_ORDER = ["lumbridge","varrock","falador_park","falador_farm","taverley","catherby","ardougne_farm","brimhaven",
+  "tgv","gnome","lletya","phasmatys","troll","weiss","hosidius","guild","civitas","kastori","harmony","fossil"];
+// Short walks: if the stop before this one in the route is listed here, walk instead of teleporting again
+const WALK = {
+  falador_farm:{falador_park:"Walk south from Falador Park"},
+  taverley:{falador_park:"Walk west from Falador", falador_farm:"Walk west from the Falador farm"},
+  brimhaven:{ardougne_farm:"Walk to Ardougne docks + boat (30 gp)"},
 };
 // Patch = [checkbox label, stop key]
 const RUNS = [
@@ -1399,7 +1416,7 @@ const RUNS = [
    patches:[["Lumbridge","lumbridge"],["Varrock","varrock"],["Falador","falador_park"],["Taverley","taverley"],["Gnome Stronghold","gnome"],["Farming Guild","guild"]],
    defaultOn:[0,1,2,3,4,5]},
   {key:"fruit", name:"Fruit tree run", use:"fruit tree",
-   patches:[["Gnome Stronghold","gnome"],["Tree Gnome Village","tgv"],["Catherby","catherby"],["Brimhaven","brimhaven"],["Lletya","lletya"],["Farming Guild","guild"]],
+   patches:[["Gnome Stronghold","gnome"],["Tree Gnome Village","tgv"],["Catherby","catherby"],["Brimhaven","brimhaven"],["Lletya","lletya"],["Farming Guild","guild"],["Kastori","kastori"]],
    defaultOn:[0,1,2,3]},
   {key:"hard", name:"Hardwood trees (Fossil Island)", patches:[], defaultOn:[]},
   {key:"bird", name:"Birdhouse run", patches:[], defaultOn:[]},
@@ -1517,7 +1534,7 @@ function wireIcons(){
 const SEED_LV = Object.fromEntries(HERBS.map(h=>[h.name, h.lvl]));
 const SAP_LV = {Oak:15, Willow:30, Maple:45, Yew:60, Magic:75, Apple:27, Papaya:57, Palm:68, Dragonfruit:81, Teak:35, Mahogany:55};
 const PAY_FOR = {"Basket of tomatoes":"oak trees (1 each)","Basket of apples":"willow trees (1 each)","Basket of oranges":"maple trees (1 each)","Cactus spine":"yew trees (10 each)","Coconut":"magic trees (25) or dragonfruit trees (15)","Sweetcorn":"apple trees (9 each)","Pineapple":"papaya trees (10 each)","Papaya fruit":"palm trees (15 each)","Limpwurt root":"teak trees (15 each)","Yanillian hops":"mahogany trees (25 each)"};
-const SPELL_LV = {Air:"Air: every standard teleport", Law:"Law: every teleport", Earth:"Earth: Lumbridge Teleport (31 Magic)", Fire:"Fire: Varrock Teleport (25 Magic)", Water:"Water: Falador Teleport (37 Magic), Ardougne Teleport (51 Magic)"};
+const SPELL_LV = {Air:"Air: every standard teleport", Law:"Law: every teleport", Earth:"Earth: Lumbridge Teleport (31 Magic)", Fire:"Fire: Varrock Teleport (25 Magic), Trollheim Teleport (61 Magic)", Water:"Water: Falador Teleport (37 Magic), Ardougne Teleport (51 Magic)"};
 const ITEM_REQ = {
   "Seaweed spore":"Farming 23 · Bone Voyage",
   "Magic secateurs":"Fairytale I – Growing Pains · works from the inventory",
@@ -1553,7 +1570,7 @@ function itemReq(label){
   }
   if((m = name.match(/^(\w+) logs$/))){ const l = LOGS.find(x=>x.name===m[1]); if(l) return `${l.name} birdhouse: Hunter ${l.hunter}, Crafting ${l.lvl}`; }
   if(name==="Logs") return "Regular birdhouse: Hunter 5, Crafting 5";
-  if((m = name.match(/^(\w+) teleport tablet$/))){ const sp = Object.values(SPELLS).find(x=>x.tab===name); return `No Magic level needed${m[1]==="Ardougne"?" · Plague City to use":""}`; }
+  if((m = name.match(/^(\w+) teleport tablet$/))){ const sp = Object.values(SPELLS).find(x=>x.tab===name); return `No Magic level needed${m[1]==="Ardougne"?" · Plague City to use":m[1]==="Trollheim"?" · Eadgar's Ruse to use":""}`; }
   const tele = Object.values(TELES).find(t=>t.item===name);
   if(tele) return tele.req;
   return "";
@@ -1573,29 +1590,41 @@ function renderPlan(){
   const hasTp = k => !!$("tp_"+k)?.checked;
   RUNS.forEach(r=>{ $("run_"+r.key).classList.toggle("on", on(r.key)); });
 
-  // Stops: one teleport per location, shared by every patch there
+  // Stops: collected first, then put in travel order and given teleports (or a walk from the stop before)
   const casts = {}, stops = new Map();
   const visit = (stopKey, use) => {
-    const st = STOPS[stopKey];
     if(stops.has(stopKey)){ const v = stops.get(stopKey); if(!v.uses.includes(use)) v.uses.push(use); return; }
-    let how = null;
-    for(const o of st.tele){
-      const [k, spell] = o.split(":");
-      if(!hasTp(k)) continue;
-      if(spell){ casts[spell] = (casts[spell]||0) + 1; how = SPELLS[spell].name; }
-      else {
-        const t = TELES[k];
-        if(t.item){ if(t.worn) wear.add(t.item); else addOnce(t.item); }
-        how = k==="fairy" && st.fairy ? `Fairy ring ${st.fairy}` : (t.short || t.label);
-        if(st.via && st.via[k]) how += ` (${st.via[k]})`;
+    stops.set(stopKey, {key:stopKey, name:STOPS[stopKey].name, uses:[use]});
+  };
+  const resolveStops = () => {
+    const ordered = [...stops.values()].sort((a,b)=>STOP_ORDER.indexOf(a.key)-STOP_ORDER.indexOf(b.key));
+    ordered.forEach((v,i)=>{
+      const st = STOPS[v.key], prev = ordered[i-1];
+      if(prev && WALK[v.key] && WALK[v.key][prev.key]){
+        v.how = WALK[v.key][prev.key]; v.walk = true;
+        if(st.coins) add("Coins", st.coins, true);
+        return;
       }
-      break;
-    }
-    const missing = !how && !st.fallback;
-    if(!how) how = st.fallback || "No teleport ticked: walk or run";
-    if(st.extra) how += ` + ${st.extra}`;
-    if(st.coins) add("Coins", st.coins, true);
-    stops.set(stopKey, {name:st.name, uses:[use], how, missing});
+      let how = null;
+      for(const o of st.tele){
+        const [k, spell] = o.split(":");
+        if(!hasTp(k)) continue;
+        if(spell){ casts[spell] = (casts[spell]||0) + 1; how = SPELLS[spell].name; }
+        else {
+          const t = TELES[k];
+          if(t.item){ if(t.worn) wear.add(t.item); else addOnce(t.item); }
+          how = k==="fairy" && st.fairy ? `Fairy ring ${st.fairy}` : (t.short || t.label);
+          if(st.via && st.via[k]) how += ` (${st.via[k]})`;
+        }
+        break;
+      }
+      v.missing = !how && !st.fallback;
+      if(!how) how = st.fallback || "No teleport ticked: walk or run";
+      if(st.extra) how += ` + ${st.extra}`;
+      if(st.coins) add("Coins", st.coins, true);
+      v.how = how;
+    });
+    return ordered;
   };
   const runPatches = r => { let n = 0; r.patches.forEach((p,i)=>{ if($(`pl_${r.key}_p${i}`)?.checked){ n++; visit(p[1], r.use); } }); return n; };
 
@@ -1648,6 +1677,8 @@ function renderPlan(){
     if(patchCount && $("pl_comp").value==="bucket") add("Bottomless compost bucket",1,false);
     if(patchCount && $("pl_comp").value==="ultra") add("Ultracompost", patchCount, false);
   }
+
+  const route = resolveStops();
 
   // Teleport runes: fill the pouch with the spells that fit, tablets for the rest
   const pouchKind = $("pl_pouchType").value;            // none | pouch | divine
@@ -1712,9 +1743,8 @@ function renderPlan(){
   while(cells.length<28) cells.push(`<div class="slot empty"></div>`);
   $("slots").innerHTML = cells.join("");
   $("invList").innerHTML = list.length ? list.map(it=>`<li title="${esc(tipText(it.name, it.qty))}"><span>${iconImg(it.name, it.qty)}${it.name}</span><span>${it.name==="Coins"?fmt(it.qty)+" gp":"× "+fmt(it.qty)}</span></li>`).join("") : `<li><span class="note">Nothing yet. Tick a run on the left.</span><span></span></li>`;
-  const route = [...stops.values()];
   $("routeWrap").hidden = route.length===0;
-  $("routeList").innerHTML = route.map(v=>`<li><span>${v.name} <span class="note">· ${v.uses.join(", ")}</span></span><span class="how"${v.missing?' style="color:var(--loss)"':""}>${v.how}</span></li>`).join("");
+  $("routeList").innerHTML = route.map((v,i)=>`<li><span><span class="rn">${i+1}</span>${v.name} <span class="note">· ${v.uses.join(", ")}</span></span><span class="how"${v.missing?' style="color:var(--loss)"':""}>${v.how}</span></li>`).join("");
   $("wearWrap").hidden = wear.size===0 && swaps.length===0;
   $("wearList").innerHTML = [...wear].map(w=>`<li title="${esc(tipText(w,1))}"><span>${iconImg(w,1)}${w}</span><span>worn</span></li>`).join("");
   $("swapNote").hidden = swaps.length===0;
@@ -1724,7 +1754,7 @@ function renderPlan(){
     ...list.map(it=>`${it.name}: ${it.name==="Coins"?fmt(it.qty)+" gp":fmt(it.qty)}`),
     ...(usePouch ? runeTypes.map(r=>`  ${r} rune (in ${pouchName.toLowerCase()}): ${runeTotals[r]}`) : []),
     ...[...wear].map(w=>`${w} (worn)`),
-    ...(route.length ? ["", "Route:", ...route.map(v=>`  ${v.name} (${v.uses.join(", ")}): ${v.how}`)] : []),
+    ...(route.length ? ["", "Route:", ...route.map((v,i)=>`  ${i+1}. ${v.name} (${v.uses.join(", ")}): ${v.how}`)] : []),
     ...(swaps.length ? ["", ...swaps] : []),
   ].join("\n");
 }
@@ -1745,7 +1775,7 @@ const LEVEL_UNLOCKS = [
   ["Crafting",66,"Air battlestaves (Zaff's staves + air orbs)"],["Crafting",72,"Skills necklace (dragonstone necklace)"],
   ["Crafting",75,"Build magic birdhouses · Divine rune pouch"],["Crafting",90,"Build redwood birdhouses"],
   ["Magic",25,"Varrock Teleport"],["Magic",31,"Lumbridge Teleport"],["Magic",37,"Falador Teleport"],["Magic",45,"Camelot Teleport"],
-  ["Magic",49,"Lvl-3 Enchant (digsite pendant)"],["Magic",51,"Ardougne Teleport (Plague City)"],["Magic",65,"Harmony Island Teleport (Arceuus)"],
+  ["Magic",49,"Lvl-3 Enchant (digsite pendant)"],["Magic",51,"Ardougne Teleport (Plague City)"],["Magic",61,"Trollheim Teleport (Eadgar's Ruse)"],["Magic",65,"Harmony Island Teleport (Arceuus)"],
   ["Magic",68,"Lvl-5 Enchant (skills necklace)"],
   ["Agility",73,"Stony basalt straight to the Troll Stronghold roof (with Hard Fremennik Diary)"],
 ];
